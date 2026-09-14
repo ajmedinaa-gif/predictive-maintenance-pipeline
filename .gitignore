@@ -30,12 +30,16 @@ data/quarantine/*
 !data/quarantine/.gitkeep
 
 # ---- Salidas del pipeline ----
-# Se regeneran con `make all`; no se versionan.
+# Se regeneran con `make all`; no se versionan. Excepción a propósito
+# (CLAUDE.md §2.16): los PNG de reports/figures/ SÍ se versionan, porque el
+# destinatario del repo no ejecuta el código.
 reports/*
 !reports/.gitkeep
 !reports/figures/
 reports/figures/*
 !reports/figures/.gitkeep
+!reports/figures/**/
+!reports/figures/**/*.png
 
 # ---- macOS (CLAUDE.md §14.6) ----
 .DS_Store

@@ -60,6 +60,9 @@ El repo no vende un modelo. Vende criterio.
     aprobación explícita de la usuaria.
 15. Español en documentación y comentarios; inglés en nombres de código y en los
     mensajes de commit.
+16. **Las figuras PNG de `reports/figures/` SÍ se versionan, a propósito: el
+    destinatario del repo no ejecuta el código.** El resto de salidas
+    generadas (`reports/*.json`, `*.md`, `*.html`), no.
 
 ## 3. Formato del CHECKPOINT (obligatorio al cerrar cada fase)
 

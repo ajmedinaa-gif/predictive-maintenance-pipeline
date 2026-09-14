@@ -63,9 +63,24 @@ son mutuamente independientes — una señal de que el dataset es simulado: en
 maquinaria física, carga → temperatura → viscosidad del lubricante → vibración
 forman una cadena causal acoplada.
 
-Figuras completas en [`reports/figures/lab180/`](reports/figures/lab180/):
-histogramas por clase, boxplots con los puntos individuales, mapa de
-correlación y barras de prevalencia.
+### Figuras
+
+![Barras de prevalencia con la línea de accuracy trivial](reports/figures/lab180/prevalencia.png)
+*La barra `yes` es 5.5556 % del total; la línea discontinua marca 94.4444 %,
+el accuracy que logra no hacer nada.*
+
+![Mapa de correlación entre sensores, escala fija en [-1, 1]](reports/figures/lab180/correlacion.png)
+*Plano por construcción: la celda más oscura fuera de la diagonal es 0.097 —
+las cinco variables son mutuamente independientes.*
+
+![Histogramas por sensor, clase superpuesta](reports/figures/lab180/histogramas_por_clase.png)
+*`vibration_mm_s` es donde la clase `yes` (naranja) se separa más de la `no`
+(azul); en `pressure_bar` el naranja cae hacia valores más bajos.*
+
+![Boxplots por sensor con los puntos individuales](reports/figures/lab180/boxplots_por_clase.png)
+*Cada punto es una observación: con 10 positivos, la caja `yes` no promedia
+más precisión de la que hay puntos para sostenerla — y se ve el -0.34 de
+`vibration_mm_s` por debajo de cero.*
 
 ## En construcción
 
