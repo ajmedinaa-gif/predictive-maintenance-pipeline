@@ -14,9 +14,9 @@ from pathlib import Path
 
 import pandas as pd
 import pandera.pandas as pa
-from config.config import PROJECT_ROOT, Settings, get_settings
 
 from predictive_maintenance import schema as schema_module
+from predictive_maintenance.config import PROJECT_ROOT, Settings, get_settings
 
 logger = logging.getLogger(__name__)
 

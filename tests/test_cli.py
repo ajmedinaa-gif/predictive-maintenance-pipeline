@@ -3,11 +3,11 @@
 import copy
 import json
 
-from config.config import get_settings
 from typer.testing import CliRunner
 
 from predictive_maintenance import __version__, data, datasets
 from predictive_maintenance.cli import app
+from predictive_maintenance.config import get_settings
 
 runner = CliRunner()
 

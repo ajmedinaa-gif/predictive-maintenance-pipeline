@@ -3,12 +3,12 @@
 import pandas as pd
 import pandera.pandas as pa
 import pytest
-from config.config import QualityThresholds
 from hypothesis import given
 from hypothesis import settings as hypothesis_settings
 from hypothesis import strategies as st
 
 from predictive_maintenance import schema
+from predictive_maintenance.config import QualityThresholds
 
 # --------------------------------------------------------------------------- #
 # La fila 82 de lab180 real: única anomalía física conocida (CLAUDE.md §6.3)

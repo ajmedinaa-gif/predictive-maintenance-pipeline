@@ -3,14 +3,20 @@
 `pydantic-settings` valida la FORMA de `default.yaml` al cargarlo: si falta una
 clave o el tipo no cuadra, falla aquí, con un mensaje claro, y no en mitad del
 entrenamiento. Regla dura (CLAUDE.md §2.10): la semilla se define una sola vez
-en el YAML; ningún módulo debe llevar un literal de configuración propio. Las
-rutas se resuelven absolutas contra la raíz del proyecto en `from_yaml`, nunca
-en tiempo de importación (para no fijar una ruta antes de saber desde dónde se
-ejecuta el CLI).
+en el YAML; ningún módulo debe llevar un literal de configuración propio.
+
+`config/default.yaml` (y `costs.yaml` en la Fase 4) son DATOS del repositorio,
+no código: se quedan en `config/`, fuera de `src/`. Localizarlos a partir de
+`__file__` (como hace este módulo por defecto, asumiendo una instalación
+editable con la raíz del repo dos niveles por encima) deja de funcionar en
+cuanto el paquete se instala como wheel (Fase 5, Docker): `site-packages/` no
+tiene un `config/` al lado. `PDM_CONFIG_DIR` es la vía explícita para ese caso:
+fija el directorio real donde vive `default.yaml` en el entorno de despliegue.
 """
 
 from __future__ import annotations
 
+import os
 from functools import lru_cache
 from pathlib import Path
 
@@ -18,8 +24,23 @@ import yaml
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config" / "default.yaml"
+# Válido solo en una instalación editable / checkout de desarrollo: este
+# fichero vive en `src/predictive_maintenance/config.py`, así que subir dos
+# niveles llega a la raíz del repo. En producción, usar `PDM_CONFIG_DIR`.
+_DEV_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _config_dir() -> Path:
+    """Directorio que contiene `default.yaml`: `PDM_CONFIG_DIR`, o el repo en dev."""
+    valor = os.environ.get("PDM_CONFIG_DIR")
+    return Path(valor) if valor else _DEV_PROJECT_ROOT / "config"
+
+
+CONFIG_DIR = _config_dir()
+# Raíz del proyecto para resolver las rutas relativas de `paths:` en el YAML
+# (`data/raw`, `reports`, ...): el directorio que contiene `config/`.
+PROJECT_ROOT = CONFIG_DIR.parent
+DEFAULT_CONFIG_PATH = CONFIG_DIR / "default.yaml"
 
 
 class PathsSettings(BaseModel):
@@ -73,9 +94,10 @@ class Settings(BaseSettings):
     quality_thresholds: QualityThresholds
 
     @classmethod
-    def from_yaml(cls, path: Path = DEFAULT_CONFIG_PATH) -> Settings:
+    def from_yaml(cls, path: Path | None = None) -> Settings:
         """Construye `Settings` a partir de un fichero YAML, con rutas absolutas."""
-        with path.open(encoding="utf-8") as fh:
+        ruta = path if path is not None else DEFAULT_CONFIG_PATH
+        with ruta.open(encoding="utf-8") as fh:
             crudo = yaml.safe_load(fh)
         crudo = dict(crudo)
         crudo["paths"] = {clave: PROJECT_ROOT / valor for clave, valor in crudo["paths"].items()}

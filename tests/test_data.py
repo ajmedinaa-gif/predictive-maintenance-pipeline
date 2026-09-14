@@ -3,9 +3,9 @@
 import pandas as pd
 import pandera.pandas as pa
 import pytest
-from config.config import get_settings
 
 from predictive_maintenance import data, schema
+from predictive_maintenance.config import get_settings
 
 
 def _settings_con_cuarentena_en(tmp_path):

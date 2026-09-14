@@ -20,9 +20,9 @@ import logging
 
 import pandas as pd
 import pandera.pandas as pa
-from config.config import QualityThresholds
 
 from predictive_maintenance import eda
+from predictive_maintenance.config import QualityThresholds
 
 logger = logging.getLogger(__name__)
 

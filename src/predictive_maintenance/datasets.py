@@ -13,8 +13,9 @@ from pathlib import Path
 import pandas as pd
 import yaml
 
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-CONFIG_FILE = PROJECT_ROOT / "config" / "default.yaml"
+from predictive_maintenance.config import DEFAULT_CONFIG_PATH, PROJECT_ROOT
+
+CONFIG_FILE = DEFAULT_CONFIG_PATH
 
 
 @dataclass(frozen=True)
