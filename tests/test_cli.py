@@ -3,9 +3,10 @@
 import copy
 import json
 
+from config.config import get_settings
 from typer.testing import CliRunner
 
-from predictive_maintenance import __version__, datasets
+from predictive_maintenance import __version__, data, datasets
 from predictive_maintenance.cli import app
 
 runner = CliRunner()
@@ -59,3 +60,35 @@ def test_eda_command_writes_report_and_figures(tmp_path, monkeypatch):
     assert len(pngs) == 4
     for png in pngs:
         assert png.stat().st_size > 0
+
+
+def test_validate_command_quarantines_row_82_and_exits_1(tmp_path, monkeypatch):
+    """`pdm-cli validate --dataset lab180` debe salir en 1: lab180 SIEMPRE
+    tiene una fila en cuarentena a propósito (CLAUDE.md §6.3)."""
+    config_real = datasets.load_config()
+    config_prueba = copy.deepcopy(config_real)
+    raw_dir_real = datasets.PROJECT_ROOT / config_real["paths"]["data_raw"]
+    config_prueba["paths"]["data_raw"] = str(raw_dir_real)
+    config_prueba["paths"]["reports"] = str(tmp_path / "reports")
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    settings_prueba = get_settings().model_copy(deep=True)
+    settings_prueba.paths.data_quarantine = tmp_path / "quarantine"
+    monkeypatch.setattr(data, "get_settings", lambda: settings_prueba)
+
+    result = runner.invoke(app, ["validate", "--dataset", "lab180"])
+    assert result.exit_code == 1, result.output
+    assert "cuarentena" in result.output.lower()
+    assert "probablemente sintético" in result.output
+
+    ruta_validacion = tmp_path / "reports" / "validation_lab180.json"
+    assert ruta_validacion.exists()
+    informe_validacion = json.loads(ruta_validacion.read_text(encoding="utf-8"))
+    assert informe_validacion["n_cuarentena"] == 1
+
+    ruta_plausibilidad = tmp_path / "reports" / "plausibility_lab180.json"
+    assert ruta_plausibilidad.exists()
+    informe_plausibilidad = json.loads(ruta_plausibilidad.read_text(encoding="utf-8"))
+    assert informe_plausibilidad["veredicto"] == "probablemente sintético"
+
+    assert list((tmp_path / "quarantine").glob("lab180_*.csv"))
