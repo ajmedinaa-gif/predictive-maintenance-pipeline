@@ -5,7 +5,7 @@ import json
 
 from typer.testing import CliRunner
 
-from predictive_maintenance import __version__, data, datasets
+from predictive_maintenance import __version__, cli, data, datasets
 from predictive_maintenance.cli import app
 from predictive_maintenance.config import get_settings
 
@@ -92,3 +92,45 @@ def test_validate_command_quarantines_row_82_and_exits_1(tmp_path, monkeypatch):
     assert informe_plausibilidad["veredicto"] == "probablemente sintético"
 
     assert list((tmp_path / "quarantine").glob("lab180_*.csv"))
+
+
+def test_train_command_writes_metrics_report_results_table_and_figure(tmp_path, monkeypatch):
+    """`pdm-cli train --dataset lab180` con un esquema de CV reducido, solo para
+    probar el cableado del comando: la tabla de resultados real (5x10) la
+    ejercen los tests de `test_evaluate.py` contra CLAUDE.md §8.1."""
+    config_real = datasets.load_config()
+    config_prueba = copy.deepcopy(config_real)
+    raw_dir_real = datasets.PROJECT_ROOT / config_real["paths"]["data_raw"]
+    config_prueba["paths"]["data_raw"] = str(raw_dir_real)
+    config_prueba["paths"]["reports"] = str(tmp_path / "reports")
+    config_prueba["paths"]["figures"] = str(tmp_path / "reports" / "figures")
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    settings_prueba = get_settings().model_copy(deep=True)
+    settings_prueba.paths.data_quarantine = tmp_path / "quarantine"
+    settings_prueba.cross_validation["lab180"] = settings_prueba.cross_validation[
+        "lab180"
+    ].model_copy(update={"n_splits": 2, "n_repeats": 1})
+    monkeypatch.setattr(data, "get_settings", lambda: settings_prueba)
+    monkeypatch.setattr(cli, "get_settings", lambda: settings_prueba)
+
+    result = runner.invoke(app, ["train", "--dataset", "lab180"])
+    assert result.exit_code == 0, result.output
+    assert "dummy_most_frequent" in result.output
+
+    ruta_json = tmp_path / "reports" / "metrics_lab180.json"
+    assert ruta_json.exists()
+    informe = json.loads(ruta_json.read_text(encoding="utf-8"))
+    nombres_modelo = list(informe["modelos"])
+    assert nombres_modelo[0] == "dummy_most_frequent"
+    assert nombres_modelo[1] == "dummy_stratified"
+    assert "nested_cv" in informe
+
+    ruta_md = tmp_path / "reports" / "results_lab180.md"
+    assert ruta_md.exists()
+    tabla = ruta_md.read_text(encoding="utf-8")
+    assert tabla.strip().splitlines()[0].startswith("| modelo | PR-AUC")
+
+    ruta_figura = tmp_path / "reports" / "figures" / "lab180" / "curvas_pr_roc.png"
+    assert ruta_figura.exists()
+    assert ruta_figura.stat().st_size > 0
