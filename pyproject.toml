@@ -61,6 +61,12 @@ extend-exclude = ["tools"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "UP", "B", "SIM", "RUF"]
 
+[tool.ruff.lint.pep8-naming]
+# Convención universal de scikit-learn: `X` es la matriz de atributos, `y` el
+# objetivo. Renombrarlas a minúsculas sería menos legible para cualquiera que
+# conozca la convención, no más.
+ignore-names = ["X", "X_*"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q --cov=src --cov-report=term-missing --cov-fail-under=80"
