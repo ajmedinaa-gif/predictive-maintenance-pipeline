@@ -1,0 +1,20 @@
+# Configuración por defecto del proyecto.
+# La semilla se define UNA SOLA VEZ aquí (CLAUDE.md §2.10); ningún módulo puede
+# llevar su propio literal.
+
+seed: 42
+
+paths:
+  data_raw: data/raw
+  data_interim: data/interim
+  data_quarantine: data/quarantine
+  reports: reports
+  figures: reports/figures
+
+datasets:
+  lab180:
+    # Datos SIMULADOS de laboratorio. Ver CLAUDE.md §7.
+    file: lab180/Lab1_engineering_failures.csv
+    target: failure
+    positive_label: "yes"
+    simulated: true

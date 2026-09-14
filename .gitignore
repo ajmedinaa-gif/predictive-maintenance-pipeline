@@ -1,0 +1,52 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.hypothesis/
+.ipynb_checkpoints/
+
+# ---- Entorno (uv) ----
+.venv/
+venv/
+.env
+
+# ---- Datos derivados ----
+# data/raw/ SÍ se versiona: es la entrada del pipeline.
+data/interim/*
+!data/interim/.gitkeep
+data/quarantine/*
+!data/quarantine/.gitkeep
+
+# ---- Salidas del pipeline ----
+# Se regeneran con `make all`; no se versionan.
+reports/*
+!reports/.gitkeep
+!reports/figures/
+reports/figures/*
+!reports/figures/.gitkeep
+
+# ---- macOS (CLAUDE.md §14.6) ----
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+__MACOSX
+
+# ---- Editores ----
+.idea/
+.vscode/
+
+# ---- respaldo temporal, no versionar ----
+.CLAUDE.md.bak
