@@ -152,12 +152,144 @@ Esto no descalifica `lab180` como ejercicio: lo define. Sirve de
 datos simulados — y nunca se presenta como resultado principal (CLAUDE.md
 §13).
 
+## Resultados
+
+Todos los números de esta sección salen de `reports/metrics_lab180.json`,
+generado por `pdm-cli train --dataset lab180`, y de la tabla que ese mismo
+comando escribe en `reports/results_lab180.md`. Ningún número está escrito a
+mano.
+
+**Solo se entrena sobre las filas que pasan el contrato de datos** (CLAUDE.md
+§2.9): 179 de las 180 filas de `lab180` — la fila 82 (`vibration_mm_s =
+-0.34`) sigue en cuarentena, nunca entra al split. Por eso la prevalencia real
+de entrenamiento es 10/179 = 5.5866 %, no el 5.5556 % de la tabla descriptiva
+de §6 (calculada sobre las 180 filas crudas). Es una diferencia de una fila;
+se explica en el CHECKPOINT de esta fase.
+
+Protocolo: `RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=42)`
+para la tabla de medias; un único `StratifiedKFold(n_splits=5, shuffle=True,
+random_state=42)` para las matrices de confusión y las curvas PR/ROC (CLAUDE.md
+§8, §8.2) — repetir ahí contaría la misma fila varias veces con predicciones de
+modelos distintos.
+
+| modelo | PR-AUC | ROC-AUC | recall | precision | bal.acc | accuracy | Brier |
+|---|---|---|---|---|---|---|---|
+| dummy_most_frequent | 0.0559 | 0.5000 | 0.0000 | 0.0000 | 0.5000 | 0.9441 | 0.0559 |
+| dummy_stratified | 0.0714 | 0.4832 | 0.0800 | 0.0400 | 0.4832 | 0.8413 | 0.1587 |
+| tree_default | 0.1214 | 0.5684 | 0.1900 | 0.1293 | 0.5684 | 0.9045 | 0.0955 |
+| tree_shallow_balanced | 0.1781 | 0.6438 | 0.4000 | 0.1654 | 0.6363 | 0.8461 | 0.1191 |
+| **logistic_balanced** | **0.6748** | 0.9189 | **0.7800** | 0.4191 | 0.8524 | 0.9168 | 0.0667 |
+| logistic_plain | 0.7153 | 0.9292 | 0.3500 | 0.4500 | 0.6700 | 0.9542 | 0.0329 |
+| **rf_balanced** | 0.6117 | **0.9254** | **0.1400** | 0.2200 | 0.5659 | 0.9441 | 0.0411 |
+| gradient_boosting | 0.4387 | 0.8496 | 0.1400 | 0.1700 | 0.5576 | 0.9285 | 0.0657 |
+
+Como en CLAUDE.md §8.1, las dos filas `dummy_*` van primero: cualquier modelo
+por debajo de su accuracy (0.9441) es peor que no hacer nada. `logistic_plain`
+—sin `class_weight`— es la base de la calibración y el umbral por coste de la
+Fase 4 (CLAUDE.md §9.2); no está en la tabla original de §8.1.
+
+### La matriz de confusión agregada, sin repetir
+
+Sobre el mismo `StratifiedKFold(5, shuffle=True, seed 42)` de CLAUDE.md §8.2,
+cada fila recibe una predicción out-of-fold exactamente una vez:
+
+| modelo | TN | FP | FN | TP | recall | accuracy | IC Wilson del recall |
+|---|---|---|---|---|---|---|---|
+| tree_default | 157 | 12 | 8 | 2 | 0.20 | 0.8883 | [0.057, 0.510] |
+| tree_shallow_balanced | 152 | 17 | 7 | 3 | 0.30 | 0.8659 | [0.108, 0.603] |
+| rf_balanced | 168 | 1 | 10 | **0** | 0.00 | 0.9385 | [0.000, 0.278] |
+| logistic_balanced | 157 | 12 | 2 | **8** | 0.80 | 0.9218 | **[0.490, 0.943]** |
+
+El IC del recall de `logistic_balanced` coincide EXACTO con CLAUDE.md §8.2
+([0.490, 0.943]) — 8 aciertos sobre 10 positivos no depende de cuántas filas
+haya en el resto del dataset. El de `rf_balanced` también coincide: **0 de 10
+positivos detectados**, igual que en CLAUDE.md.
+
+### CV anidada de demostración
+
+`evaluate.nested_cv` (Vabalas et al. 2019) sobre `logistic_balanced`, barriendo
+`C ∈ {0.01, 0.1, 1, 10}` con `GridSearchCV` interno de 3 folds en cada uno de
+los 50 folds externos: PR-AUC media 0.7016, ROC-AUC media 0.9254. El valor de
+`C` elegido con más frecuencia es el más pequeño (`C=0.01`, en 27 de 50 folds
+externos) — con 10 positivos, el interno tiende a preferir la regularización
+más fuerte disponible en la rejilla.
+
+![Curvas PR y ROC de todos los modelos](reports/figures/lab180/curvas_pr_roc.png)
+*Predicciones out-of-fold de un único `StratifiedKFold(5)`: la línea de azar
+del panel PR está en la prevalencia real (0.0559), no en 0.5. `rf_balanced`
+ordena casi tan bien como `logistic_balanced` en ambos paneles — su problema no
+es la curva, es el umbral por defecto (ver más abajo).*
+
+## Por qué la accuracy miente en este problema
+
+**El clasificador que nunca predice un fallo acierta el 94.41 % de las veces.**
+Cualquier accuracy de la tabla anterior que no supere ese número es, literalmente,
+peor que no hacer nada.
+
+El resultado más contraintuitivo de la tabla está en dos filas: `rf_balanced`
+tiene el mejor ROC-AUC (0.9254) casi empatado con `logistic_balanced` (0.9189),
+pero detecta muchísimos menos fallos — 0.14 de recall medio en la CV repetida,
+y **0 de 10** en la matriz de confusión agregada de una sola pasada. Frente a
+eso, `logistic_balanced` tiene un ROC-AUC ligeramente menor pero un recall de
+0.78 (8 de 10 en la matriz agregada) y, sobre todo, un PR-AUC casi el triple
+(0.6748 frente a 0.6117).
+
+**Cómo se formula correctamente ese contraste** (importa, porque es el
+resultado titular del repo): el ROC-AUC mide **calidad de ordenación** y es
+independiente del umbral — `rf_balanced` ordena los 179 casos casi tan bien
+como `logistic_balanced`, y eso es real. Pero al umbral por defecto (0.5),
+`rf_balanced` comprime las probabilidades de sus positivos por debajo de esa
+línea, así que casi nunca clasifica a nadie como fallo. El ROC-AUC mide lo
+primero y lo premia; el recall mide lo segundo y lo castiga. **No es que el
+umbral explique el ROC-AUC de 0.9254: el umbral explica el recall de 0.14 (o de
+0 en la matriz agregada).** Convertir esa probabilidad bien ordenada en una
+decisión de mantenimiento con un umbral distinto de 0.5 es, precisamente, el
+tema de la Fase 4.
+
+## Decisiones de diseño
+
+- **Por qué NO SMOTE ni oversampling sintético.** Con 10 positivos, interpolar
+  vecinos sintéticos entre ellos no añade información: repite el ruido de
+  muestreo de esos 10 casos con una precisión falsa. `pipeline.py` no incluye
+  ningún paso de reequilibrado de clases; el desbalance se maneja con
+  `class_weight="balanced"` (en los modelos `_balanced`) o, en la Fase 4, con
+  un umbral de decisión distinto de 0.5 — nunca las dos cosas a la vez
+  (CLAUDE.md §2.5).
+- **Por qué NO un único holdout train/test.** Con 10 positivos, un split
+  80/20 deja ~2 positivos en test: un solo acierto o fallo mueve el recall 50
+  puntos porcentuales. `RepeatedStratifiedKFold(5, n_repeats=10)` promedia 50
+  particiones distintas — el intervalo de confianza que sale de ahí
+  (`bootstrap_ci`) es la única forma honesta de decir cuánto se puede confiar
+  en la media. Varoquaux, G. (2018). *Cross-validation failure: small sample
+  sizes lead to large error bars.* NeuroImage 180: 68-77.
+- **Por qué PR-AUC y no ROC-AUC como métrica primaria.** La sección anterior
+  es el ejemplo: con 94 % de la clase mayoritaria, el ROC-AUC puede ser alto
+  mientras el modelo es inútil en la práctica (`rf_balanced`). El PR-AUC
+  penaliza los falsos positivos en relación con los verdaderos positivos, no
+  con los verdaderos negativos, que sobran. Saito, T., Rehmsmeier, M. (2015).
+  *The Precision-Recall Plot Is More Informative than the ROC Plot When
+  Evaluating Binary Classifiers on Imbalanced Datasets.* PLOS ONE 10(3):
+  e0118432.
+- **Por qué CV repetida y no una sola CV de 5 folds.** Un único reparto en
+  folds, con 10 positivos, es una muestra de tamaño 10 de por sí: repetir el
+  reparto 10 veces con semillas distintas (mismo `random_state` global, otra
+  partición interna) es lo que permite calcular un intervalo de confianza que
+  refleje la varianza del propio proceso de partición, no solo la del modelo.
+- **Por qué CV anidada para elegir hiperparámetros.** Elegir `C` (o
+  `max_depth`, o `n_estimators`) mirando la métrica en el mismo fold que se
+  reporta como resultado final produce una estimación optimista: el proceso de
+  selección de modelo se ajusta al ruido de ESA partición. `evaluate.nested_cv`
+  separa el `GridSearchCV` interno (elige hiperparámetros) del fold externo
+  (nunca visto por el interno) que se usa para medir. Vabalas, A. et al.
+  (2019). *Machine learning algorithm validation with a limited sample size.*
+  PLOS ONE 14(11): e0224365.
+
 ## En construcción
 
-Esto cubre las Fases 1 y 2 (andamiaje + EDA + contrato de datos + auditor de
-plausibilidad). Todavía **no existe ningún modelo entrenado ni resultado de
-validación**: eso llega en fases posteriores, con `RepeatedStratifiedKFold`
-sobre `lab180`, calibración de probabilidades, umbral por coste y el segundo
+Esto cubre las Fases 1, 2 y 3 (andamiaje + EDA + contrato de datos + auditor de
+plausibilidad + modelado con validación honesta). Todavía faltan: calibración
+de probabilidades, umbral de decisión por coste, límites estadísticos
+explícitos (estabilidad del árbol, presupuesto de potencia) y el segundo
 dataset (`ai4i2020`). Nada de lo que sigue está escrito todavía a propósito —
 no hay número que reportar sin haberlo medido.
 
@@ -169,6 +301,7 @@ make lint
 make test
 make eda
 make validate
+make train
 ```
 
 Ver `CLAUDE.md` para las reglas del proyecto.
