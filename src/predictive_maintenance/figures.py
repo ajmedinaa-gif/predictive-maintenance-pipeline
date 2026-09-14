@@ -241,3 +241,63 @@ def make_eda_figures(df: pd.DataFrame, spec: datasets.DatasetSpec, outdir: Path)
         figure_correlation(df, spec, outdir / "correlacion.png"),
         figure_prevalence(df, spec, outdir / "prevalencia.png"),
     ]
+
+
+def figure_pr_roc_curves(
+    curvas: dict[str, tuple[np.ndarray, np.ndarray]],
+    prevalencia: float,
+    spec: datasets.DatasetSpec,
+    path: Path,
+) -> Path:
+    """Curvas PR y ROC de todos los modelos, cada tipo en su propio eje.
+
+    `curvas[nombre] = (y_true_bin, y_score)`: las predicciones out-of-fold de
+    `evaluate.out_of_fold_predictions` (CLAUDE.md §8.2, un único
+    `StratifiedKFold`), no la CV repetida — una curva por modelo, no 50
+    superpuestas. La línea de azar en el eje PR se fija en la prevalencia real
+    (CLAUDE.md §6.2): por debajo de esa línea, el modelo ordena peor que
+    puntuar al azar.
+    """
+    from sklearn.metrics import precision_recall_curve, roc_curve
+
+    fig, (ax_pr, ax_roc) = plt.subplots(1, 2, figsize=(12.0, 5.2))
+    colores = plt.get_cmap("tab10").colors
+
+    for i, (nombre, (y_true, y_score)) in enumerate(curvas.items()):
+        color = colores[i % len(colores)]
+        precision, recall, _ = precision_recall_curve(y_true, y_score)
+        ax_pr.plot(recall, precision, label=nombre, color=color, linewidth=1.6)
+        fpr, tpr, _ = roc_curve(y_true, y_score)
+        ax_roc.plot(fpr, tpr, label=nombre, color=color, linewidth=1.6)
+
+    ax_pr.axhline(prevalencia, color="black", linewidth=1.0, linestyle="--")
+    ax_pr.text(
+        0.02,
+        prevalencia + 0.02,
+        f"azar (prevalencia = {prevalencia:.4f})",
+        fontsize=7,
+        va="bottom",
+    )
+    ax_pr.set_xlabel("recall", fontsize=9)
+    ax_pr.set_ylabel("precision", fontsize=9)
+    ax_pr.set_xlim(0, 1)
+    ax_pr.set_ylim(0, 1.02)
+    ax_pr.set_title("Curvas precisión-recall", fontsize=11, loc="left")
+
+    ax_roc.plot([0, 1], [0, 1], color="black", linewidth=1.0, linestyle="--")
+    ax_roc.set_xlabel("tasa de falsos positivos", fontsize=9)
+    ax_roc.set_ylabel("tasa de verdaderos positivos", fontsize=9)
+    ax_roc.set_xlim(0, 1)
+    ax_roc.set_ylim(0, 1.02)
+    ax_roc.set_title("Curvas ROC", fontsize=11, loc="left")
+    ax_roc.legend(fontsize=6.5, loc="lower right")
+
+    fig.suptitle(
+        "Comparación de modelos: predicciones out-of-fold (StratifiedKFold, sin repetir)",
+        fontsize=11,
+    )
+    fig.tight_layout(rect=(0, 0.03, 1, 0.94))
+    _pie_de_figura(fig, spec)
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
