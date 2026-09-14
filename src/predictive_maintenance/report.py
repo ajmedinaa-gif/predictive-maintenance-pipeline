@@ -11,11 +11,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
 
 from predictive_maintenance import datasets, eda
+
+if TYPE_CHECKING:
+    from predictive_maintenance import plausibility
+    from predictive_maintenance.data import ValidationResult
 
 
 def _jsonable(obj):
@@ -63,10 +68,44 @@ def build_eda_report(df: pd.DataFrame, spec: datasets.DatasetSpec) -> dict:
     }
 
 
-def write_eda_report(report: dict, path: Path) -> Path:
-    """Vuelca el informe a JSON. Es la única fuente de números del repositorio."""
+def write_json_report(payload: dict, path: Path) -> Path:
+    """Vuelca cualquier payload de informe a JSON, indentado y legible.
+
+    Es la única función que escribe un `reports/*.json` en todo el proyecto
+    (CLAUDE.md §2.8): ningún número visible del repositorio se escribe a mano.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8") as fh:
-        json.dump(report, fh, ensure_ascii=False, indent=2, sort_keys=False)
+        json.dump(payload, fh, ensure_ascii=False, indent=2, sort_keys=False)
         fh.write("\n")
     return path
+
+
+def write_eda_report(report: dict, path: Path) -> Path:
+    """Vuelca el informe de EDA a JSON. Alias de `write_json_report`."""
+    return write_json_report(report, path)
+
+
+def build_validation_report(result: ValidationResult, spec: datasets.DatasetSpec) -> dict:
+    """Payload del contrato de datos: qué pasó, qué se puso en cuarentena y por qué."""
+    return {
+        "dataset": spec.name,
+        "fichero": str(spec.path.relative_to(datasets.PROJECT_ROOT)),
+        **result.report,
+        "cuarentena": _jsonable(result.quarantined),
+    }
+
+
+def write_validation_report(report: dict, path: Path) -> Path:
+    """Vuelca el informe de validación del contrato a JSON."""
+    return write_json_report(report, path)
+
+
+def build_plausibility_report(informe: plausibility.PlausibilityReport) -> dict:
+    """Payload del auditor de plausibilidad, listo para volcar a JSON."""
+    return _jsonable(informe.to_dict())
+
+
+def write_plausibility_report(report: dict, path: Path) -> Path:
+    """Vuelca el veredicto del auditor de plausibilidad a JSON."""
+    return write_json_report(report, path)
