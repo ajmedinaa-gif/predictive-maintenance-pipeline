@@ -226,25 +226,55 @@ es la curva, es el umbral por defecto (ver más abajo).*
 Cualquier accuracy de la tabla anterior que no supere ese número es, literalmente,
 peor que no hacer nada.
 
-El resultado más contraintuitivo de la tabla está en dos filas: `rf_balanced`
-tiene el mejor ROC-AUC (0.9254) casi empatado con `logistic_balanced` (0.9189),
-pero detecta muchísimos menos fallos — 0.14 de recall medio en la CV repetida,
-y **0 de 10** en la matriz de confusión agregada de una sola pasada. Frente a
-eso, `logistic_balanced` tiene un ROC-AUC ligeramente menor pero un recall de
-0.78 (8 de 10 en la matriz agregada) y, sobre todo, un PR-AUC casi el triple
-(0.6748 frente a 0.6117).
+El resultado más contraintuitivo de la tabla es este contraste, mejor leído
+como dos filas una al lado de la otra que como un número suelto:
+
+| modelo | ROC-AUC | recall |
+|---|---|---|
+| rf_balanced | **0.9254** | 0.14 |
+| logistic_balanced | 0.9189 (peor) | **0.78** |
+
+`rf_balanced` tiene el ROC-AUC más alto de los dos — y aun así detecta muchos
+menos fallos: 0.14 de recall medio en la CV repetida, **0 de 10** en la matriz
+de confusión agregada de una sola pasada (§8.2). `logistic_balanced`, con un
+ROC-AUC *peor*, detecta el 0.78 (8 de 10 en esa misma matriz) y tiene, además,
+un PR-AUC casi el triple (0.6748 frente a 0.6117 de `rf_balanced`).
 
 **Cómo se formula correctamente ese contraste** (importa, porque es el
 resultado titular del repo): el ROC-AUC mide **calidad de ordenación** y es
-independiente del umbral — `rf_balanced` ordena los 179 casos casi tan bien
+**independiente del umbral** — `rf_balanced` ordena los 179 casos casi tan bien
 como `logistic_balanced`, y eso es real. Pero al umbral por defecto (0.5),
 `rf_balanced` comprime las probabilidades de sus positivos por debajo de esa
 línea, así que casi nunca clasifica a nadie como fallo. El ROC-AUC mide lo
-primero y lo premia; el recall mide lo segundo y lo castiga. **No es que el
-umbral explique el ROC-AUC de 0.9254: el umbral explica el recall de 0.14 (o de
-0 en la matriz agregada).** Convertir esa probabilidad bien ordenada en una
-decisión de mantenimiento con un umbral distinto de 0.5 es, precisamente, el
-tema de la Fase 4.
+primero y lo premia; el recall mide lo segundo y lo castiga. **El umbral
+explica el recall de 0.14, NO el ROC-AUC de 0.9254** — el ROC-AUC no depende de
+ningún umbral, así que no hay umbral que lo explique. Convertir esa
+probabilidad bien ordenada en una decisión de mantenimiento con un umbral
+distinto de 0.5 es, precisamente, el tema de la Fase 4.
+
+Ese mismo umbral, además, es exactamente lo que le falta a `logistic_plain`
+para ser la mejor fila de la tabla sin más ajuste: ver más abajo.
+
+### `logistic_plain`: el mejor ordenador y el mejor calibrado, y no es casualidad
+
+`logistic_plain` —sin `class_weight`— es a la vez el modelo con **mejor PR-AUC**
+de toda la tabla (0.7153, por delante incluso de `logistic_balanced`) y con
+**mejor Brier de toda la tabla**: 0.0329, frente a 0.0667 de `logistic_balanced`
+—su comparación más directa— y por debajo también de `rf_balanced` (0.0411), el
+siguiente mejor. No es casualidad: es el único modelo `plain` de los dos
+logísticos, el que no cuenta el desbalance dos veces. `class_weight="balanced"`
+reescala la función de pérdida durante el ajuste para compensar la clase
+minoritaria; eso mueve la frontera de decisión y mejora el recall al umbral
+0.5, pero también distorsiona las probabilidades que el modelo reporta, que
+dejan de reflejar frecuencias reales — de ahí el Brier peor de
+`logistic_balanced`. `logistic_plain` no toca esa distribución: por eso sus
+probabilidades son las más fiables de la tabla, el punto de partida correcto
+para calibrar y no la propia calibración.
+
+Es exactamente el modelo que CLAUDE.md §9.2 designa para la Fase 4: calibración
+de Platt sobre `logistic_plain`, y un umbral de decisión por coste optimizado
+sobre esas probabilidades ya fiables — nunca `class_weight` y umbral por coste
+a la vez (CLAUDE.md §2.5), porque sería contar el desbalance dos veces.
 
 ## Decisiones de diseño
 
