@@ -11,8 +11,19 @@ import logging
 
 import typer
 
-from predictive_maintenance import __version__, data, datasets, eda, figures, plausibility, report
+from predictive_maintenance import (
+    __version__,
+    data,
+    datasets,
+    eda,
+    evaluate,
+    figures,
+    pipeline,
+    plausibility,
+    report,
+)
 from predictive_maintenance import schema as schema_module
+from predictive_maintenance.config import get_settings
 
 app = typer.Typer(
     name="pdm-cli",
@@ -154,6 +165,108 @@ def validate_command(
 
     if resultado.report["n_cuarentena"]:
         raise typer.Exit(code=1)
+
+
+@app.command(name="train")
+def train_command(
+    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a entrenar."),
+) -> None:
+    """Compara el zoo de modelos de `pipeline.py` con el protocolo de CLAUDE.md §8.
+
+    Solo entrena sobre las filas que pasan el contrato de datos (CLAUDE.md
+    §2.9): la fila en cuarentena de `lab180` nunca entra al split de CV.
+    """
+    _configurar_logging()
+
+    settings = get_settings()
+    spec = datasets.get_spec(dataset)
+    if dataset not in schema_module.SCHEMAS:
+        disponibles = ", ".join(sorted(schema_module.SCHEMAS))
+        typer.echo(f"No hay contrato registrado para {dataset!r}. Disponibles: {disponibles}")
+        raise typer.Exit(code=2)
+
+    resultado_validacion = data.load_validated(
+        spec.path, schema_module.SCHEMAS[dataset], dataset_name=dataset
+    )
+    df = resultado_validacion.valid
+    X = df.drop(columns=[spec.target])
+    y = df[spec.target].astype(str)
+    n_positivos = int((y == spec.positive_label).sum())
+
+    cfg = evaluate.EvalConfig.for_dataset(dataset, settings)
+    protocolo_principal = (
+        f"RepeatedStratifiedKFold(n_splits={cfg.n_splits}, n_repeats={cfg.n_repeats}, "
+        f"random_state={cfg.seed})"
+    )
+    protocolo_matriz = f"StratifiedKFold(n_splits=5, shuffle=True, random_state={cfg.seed})"
+
+    typer.echo(f"\n=== Entrenando {dataset}: {len(df)} filas válidas, {n_positivos} positivos ===")
+    typer.echo(f"Protocolo principal: {protocolo_principal}\n")
+
+    resultados_por_modelo: dict[str, dict] = {}
+    curvas: dict[str, tuple] = {}
+    for nombre in pipeline.MODEL_NAMES:
+        typer.echo(f"  - {nombre}")
+        pipe = pipeline.build_pipeline(nombre, seed=cfg.seed)
+        folds = evaluate.cross_validate_model(pipe, X, y, cfg, positive_label=spec.positive_label)
+        matriz = evaluate.aggregate_confusion_matrix(
+            pipe, X, y, seed=cfg.seed, n_splits=5, positive_label=spec.positive_label
+        )
+        resultados_por_modelo[nombre] = {"folds": folds, "matriz_confusion": matriz}
+
+        y_true_bin, y_score, _ = evaluate.out_of_fold_predictions(
+            pipe, X, y, seed=cfg.seed, n_splits=5, positive_label=spec.positive_label
+        )
+        curvas[nombre] = (y_true_bin, y_score)
+
+    typer.echo(
+        "\nCV anidada de demostración (Vabalas et al. 2019): logistic_balanced, "
+        "C en {0.01, 0.1, 1, 10}"
+    )
+    pipe_logistic = pipeline.build_pipeline("logistic_balanced", seed=cfg.seed)
+    grid_logistic = {"classifier__C": [0.01, 0.1, 1.0, 10.0]}
+    tabla_nested = evaluate.nested_cv(
+        pipe_logistic, grid_logistic, X, y, cfg, positive_label=spec.positive_label
+    )
+    conteo_c = tabla_nested["mejores_hiperparametros"].apply(lambda d: d["classifier__C"])
+    nested_cv_payload = {
+        "modelo": "logistic_balanced",
+        "param_grid": grid_logistic,
+        "average_precision_media": float(tabla_nested["average_precision"].mean()),
+        "roc_auc_media": float(tabla_nested["roc_auc"].mean()),
+        "conteo_mejor_c": {str(k): int(v) for k, v in conteo_c.value_counts().items()},
+    }
+
+    config_yaml = datasets.load_config()
+    reports_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["reports"]
+    figures_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["figures"] / dataset
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
+    informe = report.build_metrics_report(
+        dataset=dataset,
+        n_filas=len(df),
+        n_positivos=n_positivos,
+        resultados_por_modelo=resultados_por_modelo,
+        protocolo_principal=protocolo_principal,
+        protocolo_matriz_confusion=protocolo_matriz,
+        seed=cfg.seed,
+        nested_cv=nested_cv_payload,
+    )
+    ruta_json = report.write_metrics_report(informe, reports_dir / f"metrics_{dataset}.json")
+
+    tabla_md = report.render_results_markdown(informe)
+    ruta_md = report.write_markdown_report(tabla_md, reports_dir / f"results_{dataset}.md")
+
+    prevalencia = n_positivos / len(df)
+    ruta_figura = figures.figure_pr_roc_curves(
+        curvas, prevalencia, spec, figures_dir / "curvas_pr_roc.png"
+    )
+
+    typer.echo("\n--- Resultados (media sobre folds) ---")
+    typer.echo(tabla_md)
+    typer.echo(f"Informe JSON: {_mostrar_ruta(ruta_json)}")
+    typer.echo(f"Tabla de resultados: {_mostrar_ruta(ruta_md)}")
+    typer.echo(f"Figura: {_mostrar_ruta(ruta_figura)}")
 
 
 if __name__ == "__main__":
