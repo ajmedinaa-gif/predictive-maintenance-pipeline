@@ -135,11 +135,10 @@ El veredicto combina dos firmas fuertes, deterministas, escritas a
    debajo del umbral. Ningún par de atributos está acoplado.
 2. **Patrón de nulos demasiado regular.** 12 nulos, repartidos en **exactamente
    4, 4 y 4** entre `temperature_c`, `vibration_mm_s` y `pressure_bar`, que
-   **jamás se solapan** en la misma fila (ninguna fila tiene 2 nulos o más) y
-   que, además, no tocan ni una sola fila de la clase `yes`. Un sensor real
-   falla por causas independientes entre sí; que el recuento coincida exacto
-   entre tres columnas distintas es la firma de un generador, no de un fallo
-   de instrumentación.
+   **jamás se solapan** en la misma fila (ninguna fila tiene 2 nulos o más). Un
+   sensor real falla por causas independientes entre sí; que el recuento
+   coincida exacto entre tres columnas distintas es la firma de un generador,
+   no de un fallo de instrumentación.
 
 Como evidencia adicional, de apoyo —no decisiva por sí sola—, el auditor
 también comprueba la distribución del último dígito decimal de cada sensor
