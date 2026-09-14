@@ -72,27 +72,25 @@ def correlation_structure(
 def missingness_regularity(df: pd.DataFrame, target: str = "failure") -> dict:
     """Segunda firma: un patrón de nulos demasiado regular para ser real.
 
-    Tres preguntas sobre el mismo `eda.missingness_report`: ¿el número de
-    nulos es idéntico en cada columna afectada?, ¿se solapan alguna vez en la
-    misma fila?, ¿se reparten entre las clases en proporción a su tamaño?
-    Un sensor real falla por causas independientes (corte de energía,
-    saturación puntual, error de transmisión): que el recuento de nulos
-    coincida exacto entre columnas y jamás se solape es un patrón de
-    generación, no de fallo de instrumentación.
+    La bandera depende de dos preguntas deterministas sobre el mismo
+    `eda.missingness_report`: ¿el número de nulos es idéntico en cada columna
+    afectada?, ¿se solapan alguna vez en la misma fila? Un sensor real falla
+    por causas independientes (corte de energía, saturación puntual, error de
+    transmisión): que el recuento de nulos coincida exacto entre columnas y
+    jamás se solape es un patrón de generación, no de fallo de
+    instrumentación.
+
+    Una tercera pregunta —¿se reparten entre las clases en proporción a su
+    tamaño?— se reporta, pero NO participa en la bandera: bajo un modelo
+    puramente al azar (hipergeométrico, sin reposición), la probabilidad de
+    que ninguno de los nulos caiga en una clase minoritaria de 10 sobre 180 ya
+    es considerable por sí sola. Tratar ese resultado como evidencia sería
+    sobreinterpretar ruido de muestra pequeña.
     """
     informe = eda.missingness_report(df, target)
     conteos_afectados = [n for n in informe["nulos_por_columna"].values() if n > 0]
     reparto_igual_por_columna = len(conteos_afectados) > 0 and len(set(conteos_afectados)) == 1
     sin_solapamiento = not informe["solapan_entre_columnas"]
-
-    total_nulos = informe["total_nulos"]
-    balance = eda.class_balance(df, target)
-    prevalencia = balance["prevalencia"]
-    positivos_con_nulos = informe["reparto_por_clase"].get(
-        balance["clase_positiva"], {"filas_con_nulos": 0}
-    )["filas_con_nulos"]
-    nulos_esperados_en_positivos = total_nulos * prevalencia
-
     bandera_regularidad_sospechosa = reparto_igual_por_columna and sin_solapamiento
 
     if bandera_regularidad_sospechosa:
@@ -100,20 +98,43 @@ def missingness_regularity(df: pd.DataFrame, target: str = "failure") -> dict:
     else:
         veredicto = "patrón de nulos irregular: compatible con fallos de instrumentación reales"
 
+    total_nulos = informe["total_nulos"]
+    balance = eda.class_balance(df, target)
+    observado = informe["reparto_por_clase"].get(balance["clase_positiva"], {"filas_con_nulos": 0})[
+        "filas_con_nulos"
+    ]
+    esperado_bajo_azar = total_nulos * balance["prevalencia"]
+    # P(observar `observado` nulos o menos en la clase positiva por puro azar),
+    # bajo un modelo hipergeométrico: repartir `total_nulos` filas al azar,
+    # sin reposición, entre las `balance["n"]` filas del dataset. NO es parte
+    # de la bandera de regularidad; se reporta como evidencia NO concluyente.
+    p_valor = (
+        float(stats.hypergeom.cdf(observado, balance["n"], balance["n_positivos"], total_nulos))
+        if total_nulos and balance["n_positivos"]
+        else None
+    )
+
     return {
         "nulos_por_columna": informe["nulos_por_columna"],
         "reparto_igual_por_columna": reparto_igual_por_columna,
         "solapan_entre_columnas": informe["solapan_entre_columnas"],
         "sin_solapamiento": sin_solapamiento,
-        "positivos_con_nulos": positivos_con_nulos,
-        "nulos_esperados_en_positivos_si_fuera_azar": nulos_esperados_en_positivos,
         "bandera_regularidad_sospechosa": bandera_regularidad_sospechosa,
         "veredicto": veredicto,
+        "reparto_por_clase_no_concluyente": {
+            "observado": observado,
+            "esperado_bajo_azar": esperado_bajo_azar,
+            "p_valor": p_valor,
+            "interpretacion": (
+                f"no concluyente: un reparto así de extremo, o más, ocurre por puro azar "
+                f"con probabilidad {p_valor:.4f}"
+                if p_valor is not None
+                else "no concluyente: sin nulos o sin positivos, no hay nada que probar"
+            ),
+        },
         "evidencia": (
             f"{total_nulos} nulos repartidos en exactamente "
-            f"{conteos_afectados} por columna, sin solapar jamás entre columnas "
-            f"(esperado bajo azar: {nulos_esperados_en_positivos:.2f} en la clase positiva, "
-            f"observado: {positivos_con_nulos})"
+            f"{conteos_afectados} por columna, sin solapar jamás entre columnas"
         ),
     }
 
