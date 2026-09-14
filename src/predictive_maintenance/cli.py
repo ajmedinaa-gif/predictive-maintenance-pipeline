@@ -7,9 +7,12 @@ Fase 1 toca la red.
 
 from __future__ import annotations
 
+import logging
+
 import typer
 
-from predictive_maintenance import __version__, datasets, eda, figures, report
+from predictive_maintenance import __version__, data, datasets, eda, figures, plausibility, report
+from predictive_maintenance import schema as schema_module
 
 app = typer.Typer(
     name="pdm-cli",
@@ -82,6 +85,75 @@ def eda_command(
     typer.echo(f"\nInforme JSON: {_mostrar_ruta(ruta_json)}")
     for ruta in rutas_figuras:
         typer.echo(f"Figura: {_mostrar_ruta(ruta)}")
+
+
+def _configurar_logging() -> None:
+    if not logging.getLogger().handlers:
+        logging.basicConfig(
+            level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s"
+        )
+
+
+@app.command(name="validate")
+def validate_command(
+    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a validar."),
+) -> None:
+    """Valida `dataset` contra su contrato y audita su plausibilidad física.
+
+    Sale con código 1 si alguna fila terminó en cuarentena, para que un CI
+    pueda usarlo como puerta de calidad (CLAUDE.md §2.9).
+    """
+    _configurar_logging()
+
+    spec = datasets.get_spec(dataset)
+    if dataset not in schema_module.SCHEMAS:
+        disponibles = ", ".join(sorted(schema_module.SCHEMAS))
+        typer.echo(f"No hay contrato registrado para {dataset!r}. Disponibles: {disponibles}")
+        raise typer.Exit(code=2)
+    esquema = schema_module.SCHEMAS[dataset]
+
+    resultado = data.load_validated(spec.path, esquema, dataset_name=dataset)
+
+    typer.echo(f"\n=== Contrato de datos: {dataset} ({spec.path.name}) ===\n")
+    typer.echo(
+        f"{resultado.report['n_filas_leidas']} filas leídas -> "
+        f"{resultado.report['n_validas']} válidas, "
+        f"{resultado.report['n_cuarentena']} en cuarentena"
+    )
+    if resultado.report["n_cuarentena"]:
+        typer.echo(f"Cuarentena escrita en: {resultado.report['ruta_cuarentena']}")
+        for motivo in resultado.report["motivos_cuarentena"]:
+            typer.echo(f"  fila {motivo['index']}: {motivo['quarantine_reason']}")
+    if resultado.report["avisos_calidad"]:
+        typer.echo("\n--- Avisos de calidad ---")
+        for aviso in resultado.report["avisos_calidad"]:
+            typer.echo(f"  ! {aviso}")
+    else:
+        typer.echo("Sin avisos de calidad.")
+
+    config = datasets.load_config()
+    reports_dir = datasets.PROJECT_ROOT / config["paths"]["reports"]
+
+    informe_validacion = report.build_validation_report(resultado, spec)
+    ruta_validacion = report.write_validation_report(
+        informe_validacion, reports_dir / f"validation_{dataset}.json"
+    )
+    typer.echo(f"\nInforme de validación: {_mostrar_ruta(ruta_validacion)}")
+
+    df_completo = datasets.load(dataset)
+    auditoria = plausibility.audit(df_completo, dataset=dataset, target=spec.target)
+    informe_plausibilidad = report.build_plausibility_report(auditoria)
+    ruta_plausibilidad = report.write_plausibility_report(
+        informe_plausibilidad, reports_dir / f"plausibility_{dataset}.json"
+    )
+    typer.echo("\n--- Auditoría de plausibilidad ---")
+    typer.echo(f"Veredicto: {auditoria.veredicto}")
+    for evidencia in auditoria.evidencia:
+        typer.echo(f"  - {evidencia}")
+    typer.echo(f"Informe de plausibilidad: {_mostrar_ruta(ruta_plausibilidad)}")
+
+    if resultado.report["n_cuarentena"]:
+        raise typer.Exit(code=1)
 
 
 if __name__ == "__main__":
