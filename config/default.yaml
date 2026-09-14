@@ -18,3 +18,28 @@ datasets:
     target: failure
     positive_label: "yes"
     simulated: true
+
+# Esquema de validación cruzada por dataset (CLAUDE.md §8). lab180 usa
+# repeticiones porque con 10 positivos un único reparto en folds es ruido; a
+# partir de la Fase 3 el CLI lee esto en vez de instanciar los splitters con
+# números sueltos.
+cross_validation:
+  lab180:
+    n_splits: 5
+    n_repeats: 10
+  ai4i2020:
+    n_splits: 5
+    n_repeats: 1
+
+# Umbrales de los avisos de CALIDAD (no de validez) del contrato de datos
+# (CLAUDE.md §6.3, Fase 2). Un dataframe que los incumple sigue siendo válido;
+# solo se registra un WARNING, nunca una excepción.
+quality_thresholds:
+  # Fuera de este rango, "predicción de fallo" deja de tener sentido como
+  # problema: por debajo de 0.01 casi no hay positivos que aprender; por
+  # encima de 0.50 ya no es una clase minoritaria.
+  min_prevalence: 0.01
+  max_prevalence: 0.50
+  # Más de un 10% de nulos en una columna es un sensor con un problema
+  # sistemático, no ruido de medición puntual.
+  max_null_pct_per_column: 0.10
