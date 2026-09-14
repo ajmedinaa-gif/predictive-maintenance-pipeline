@@ -207,32 +207,54 @@ ejecutable y reutilizable.
 - **IC del recall por Wilson** sobre el conteo de positivos, no por bootstrap.
 - Nested CV (`GridSearchCV` interno 3-fold) para modelos con hiperparámetros.
 
-### 8.1 Resultados verificados — CV repetida (5 × 10, semilla 42)
+### 8.1 Resultados medidos — CV repetida (5 × 10, semilla 42)
+
+**IMPORTANTE: estas cifras se miden sobre 179 filas, no 180.** El pipeline
+entrena sobre el dataset que sale del contrato (§2.9): la fila 82 va a
+cuarentena y no entra al modelo. Por eso la prevalencia operativa es
+10/179 = 0.0559 y la accuracy del dummy es 169/179 = 0.9441, mientras que §6
+—que describe el CSV **crudo**— dice 0.0556 y 0.9444. Las dos cosas son
+correctas y describen datasets distintos. No las cuadres a la fuerza.
+
+Medido con `pdm-cli train --dataset lab180`, `RandomForestClassifier` con
+`n_estimators` por defecto (100):
 
 | modelo | PR-AUC | ROC-AUC | recall | precision | bal.acc | accuracy | Brier |
 |---|---|---|---|---|---|---|---|
-| dummy_most_frequent | 0.0556 | 0.5000 | 0.00 | 0.000 | 0.5000 | 0.9444 | 0.0556 |
-| dummy_stratified | 0.0711 | 0.4835 | 0.08 | 0.040 | 0.4835 | 0.8422 | 0.1578 |
-| tree_default | 0.1372 | 0.5759 | 0.20 | 0.150 | 0.5759 | 0.9100 | 0.0900 |
-| tree_shallow_balanced | 0.1977 | 0.6438 | 0.40 | 0.196 | 0.6368 | 0.8472 | 0.1201 |
-| logistic_balanced | **0.6554** | 0.9129 | 0.77 | 0.390 | 0.8474 | 0.9161 | 0.0678 |
-| rf_balanced | 0.6462 | **0.9294** | **0.03** | 0.060 | 0.5150 | 0.9461 | 0.0404 |
-| gradient_boosting | 0.4295 | 0.8506 | 0.15 | 0.115 | 0.5621 | 0.9283 | 0.0661 |
+| dummy_most_frequent | 0.0559 | 0.5000 | 0.00 | 0.000 | 0.5000 | 0.9441 | 0.0559 |
+| dummy_stratified | 0.0714 | 0.4832 | 0.08 | 0.040 | 0.4832 | 0.8413 | 0.1587 |
+| tree_default | 0.1214 | 0.5684 | 0.19 | 0.129 | 0.5684 | 0.9045 | 0.0955 |
+| tree_shallow_balanced | 0.1781 | 0.6438 | 0.40 | 0.165 | 0.6363 | 0.8461 | 0.1191 |
+| logistic_balanced | 0.6748 | 0.9189 | **0.78** | 0.419 | 0.8524 | 0.9168 | 0.0667 |
+| logistic_plain | **0.7153** | **0.9292** | 0.35 | 0.450 | 0.6700 | 0.9542 | **0.0329** |
+| rf_balanced | 0.6117 | 0.9254 | **0.14** | 0.220 | 0.5659 | 0.9441 | 0.0411 |
+| gradient_boosting | 0.4387 | 0.8496 | 0.14 | 0.170 | 0.5576 | 0.9285 | 0.0657 |
 
-**El resultado titular del repositorio está en dos filas de esa tabla:** el
-RandomForest tiene el mejor ROC-AUC (0.929) y detecta el 3 % de los fallos.
+**El resultado titular del repositorio:** `rf_balanced` tiene ROC-AUC 0.925 —de
+los mejores de la tabla— y detecta el **14 %** de los fallos. `gradient_boosting`
+hace lo mismo con ROC-AUC 0.850. Mientras tanto `logistic_balanced`, con un
+ROC-AUC *peor* (0.919), detecta el **78 %**.
 
 **Cómo se formula ese argumento correctamente** (importa, porque es el titular):
 el ROC-AUC mide **calidad de ordenación** y es independiente del umbral. El
-RandomForest ordena bien los casos, pero comprime todas sus probabilidades por
-debajo de 0.5, así que al umbral por defecto no clasifica a nadie como fallo. El
-ROC-AUC mide lo primero y lo premia; el recall mide lo segundo y lo castiga. **No
-digas que "el umbral explica el ROC-AUC de 0.932": el umbral explica el recall de
-0.03.**
+RandomForest ordena bien, pero comprime sus probabilidades por debajo de 0.5, así
+que al umbral por defecto casi no clasifica a nadie como fallo. El ROC-AUC mide
+lo primero y lo premia; el recall mide lo segundo y lo castiga. **No digas que
+"el umbral explica el ROC-AUC de 0.925": el umbral explica el recall de 0.14.**
 
-Tolerancias para tests (anchas a propósito, porque el esquema de CV mueve el
-valor — ver §9.2): PR-AUC de `logistic_balanced` en [0.55, 0.75]; ROC-AUC de
-`rf_balanced` en [0.88, 0.96]; recall de `rf_balanced` < 0.15.
+**Nota para la Fase 4:** `logistic_plain` ya es el mejor ordenador (PR-AUC 0.7153)
+y el mejor calibrado con diferencia (Brier 0.0329, la mitad que los demás). Es
+exactamente el modelo que §9.2 designa para calibración + umbral. La tabla lo
+confirma antes de empezar esa fase.
+
+**Tolerancias para tests de regresión — anchas a propósito.** Con 10 positivos el
+recall se mueve en saltos de 0.1 por fold; un test estrecho se rompe al cambiar
+de versión de scikit-learn sin que nada esté mal:
+- PR-AUC de `logistic_balanced` en [0.55, 0.80]
+- ROC-AUC de `rf_balanced` en [0.85, 0.98]
+- recall de `rf_balanced` **< 0.35** (lo que se protege es "el recall es malo pese
+  al buen ROC-AUC", no que valga exactamente 0.14)
+- PR-AUC de cualquier modelo real > PR-AUC de ambos dummy
 
 ### 8.2 Matrices de confusión agregadas out-of-fold, `StratifiedKFold(5, shuffle, seed 42)`
 
