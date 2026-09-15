@@ -2,7 +2,7 @@
 # (CLAUDE.md §14.1). Sintaxis compatible con GNU Make 3.81 (el de macOS):
 # sin .ONESHELL ni funciones de Make 4.x.
 
-.PHONY: install lint test eda validate train calibrate explain limits all
+.PHONY: install lint test eda validate train calibrate explain limits notebook all
 
 install:
 	uv sync
@@ -32,6 +32,12 @@ explain:
 
 limits:
 	uv run pdm-cli limits --dataset lab180
+
+# Re-ejecuta el anexo académico con un kernel Jupyter real (nbclient +
+# ipykernel), NO ensambla el JSON a mano. NO entra en `all`: es lento
+# (levanta un kernel) y no es parte del pipeline principal.
+notebook:
+	uv run python tools/run_notebook.py
 
 # `validate` NO entra en `all`: lab180 tiene una fila en cuarentena a
 # propósito (CLAUDE.md §6.3), así que sale siempre con código 1. Es la señal
