@@ -1,182 +1,208 @@
 # predictive-maintenance-pipeline
 
-Clasificación de riesgo de fallo en maquinaria industrial a partir de sensores.
+[![CI](https://github.com/ajmedinaa-gif/predictive-maintenance-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/ajmedinaa-gif/predictive-maintenance-pipeline/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-**Tesis del repositorio:** un pipeline de mantenimiento predictivo evaluado
-honestamente sobre dos datasets de tamaño radicalmente distinto, demostrando
-que la métrica ingenua —la accuracy— miente en ambos. El repo no vende un
-modelo. Vende criterio.
+Clasificación de riesgo de fallo en maquinaria industrial a partir de
+sensores: un pipeline de mantenimiento predictivo evaluado honestamente sobre
+dos datasets de tamaño radicalmente distinto, demostrando que la métrica
+ingenua —la accuracy— miente en ambos. El repo no vende un modelo. Vende
+criterio.
 
-Todos los números de este README se leen de `reports/eda_lab180.json`, generado
-por `pdm-cli eda --dataset lab180`. Ningún número está escrito a mano.
+**Dashboard en vivo:** por desplegar en Streamlit Community Cloud (ver
+[§ Quickstart](#quickstart) para levantarlo en local mientras tanto; las
+instrucciones de despliegue exacto están en [§ Streamlit Community
+Cloud](#desplegar-el-dashboard-en-streamlit-community-cloud)).
+**Informe HTML:** se publica automáticamente en cada push a `main` vía
+GitHub Pages una vez activado en *Settings → Pages* del repositorio, en
+`https://ajmedinaa-gif.github.io/predictive-maintenance-pipeline/`.
+**Model card:** [`MODEL_CARD.md`](MODEL_CARD.md).
 
-## Dataset: `lab180`
+## Resultado principal
 
-⚠️ **Datos SIMULADOS de laboratorio**, no mediciones de campo. `data/raw/lab180/Lab1_engineering_failures.csv`
-— 180 filas, 6 columnas (5 sensores + variable objetivo `failure`).
+Todos los números de esta tabla salen de `reports/comparison.json`, generado
+por `pdm-cli compare` a partir de `reports/metrics_*.json` y
+`reports/calibration_*.json` ya medidos sobre los dos datasets. Ningún número
+está escrito a mano (hay un test que lo verifica:
+`tests/test_readme_correspondence.py`).
 
-### Tabla descriptiva
+| | `lab180` (179 filas válidas, simulado) | `ai4i2020` (10 000 filas, real — UCI id=601) |
+|---|---|---|
+| positivos | 10 (5.59 %) | 339 (3.39 %) |
+| **accuracy del clasificador trivial** | **94.41 %** | **96.61 %** |
+| mejor modelo por PR-AUC (informativo) | `logistic_plain` — PR-AUC 0.7153 | `gradient_boosting` — PR-AUC 0.9108 |
+| **modelo de la decisión** (mismo en ambos, §9.2) | `logistic_plain` + Platt | `logistic_plain` + Platt |
+| umbral óptimo por coste | 0.141 | 0.084 |
+| recall a ESE umbral (aciertos/positivos) | 8/10 | 267/339 |
+| **IC de Wilson del recall, al umbral óptimo** | **[0.490, 0.943] — 45 pp de ancho** | **[0.741, 0.828] — 9 pp de ancho** |
+| ahorro del umbral óptimo sobre t=0.5 | 64.7 % | 40.7 % |
 
-| atributo | n | nulos | %nulos | min | max | media | mediana | desv. típica |
-|---|---|---|---|---|---|---|---|---|
-| temperature_c | 176 | 4 | 2.2222 | 47.00 | 89.80 | 67.8102 | 67.950 | 7.6651 |
-| vibration_mm_s | 176 | 4 | 2.2222 | **-0.34** | 9.59 | 4.2438 | 4.295 | 1.3349 |
-| pressure_bar | 176 | 4 | 2.2222 | 4.27 | 10.19 | 6.7630 | 6.750 | 1.1330 |
-| hours_since_maintenance | 180 | 0 | 0.0000 | 20.00 | 896.00 | 473.1889 | 440.000 | 262.3427 |
-| load_percent | 180 | 0 | 0.0000 | 31.50 | 100.00 | 71.0900 | 71.400 | 14.4342 |
+Como manda la regla dura del proyecto, la fila del clasificador trivial va
+siempre presente: cualquier accuracy que no la supere es peor que no hacer
+nada. Las cuatro últimas filas son siempre el mismo modelo
+(`logistic_plain` + Platt, la ruta fija del proyecto: sin balanceo → calibrar
+→ optimizar umbral), evaluado a **su propio umbral óptimo, nunca a 0.5** — la
+fila "mejor modelo por PR-AUC" es aparte y solo informativa.
 
-### La anomalía: vibración negativa
+**La fila que hay que leer dos veces es la del IC de Wilson: con 179 filas,
+un intervalo de 45 puntos porcentuales hace que "recall 0.49" y "recall 0.94"
+sean estadísticamente indistinguibles — no sirve para decidir nada en
+producción. Con 10 000 filas, el mismo cálculo da un intervalo de 9 puntos:
+accionable.** No es que `ai4i2020` tenga "mejores datos" en un sentido
+abstracto — tiene 34 veces más positivos, y eso es, literalmente, lo único
+que estrecha un intervalo de Wilson.
 
-La fila **82** registra `vibration_mm_s = -0.34`. Una amplitud RMS de vibración
-no puede ser negativa: es un imposible físico, no un valor extremo. Esa fila va
-a **cuarentena**, no se imputa — imputar un sensor que miente sería fabricar un
-dato, no rescatar uno perdido.
+![Curvas PR de ambos datasets en el mismo eje](reports/figures/comparacion_pr.png)
+*Curvas PR del modelo de mejor PR-AUC de cada dataset (`logistic_plain` y
+`gradient_boosting`), predicciones out-of-fold de un único `StratifiedKFold(5)`.
+La de `lab180` es dentada porque cada uno de sus 10 positivos mueve la curva
+de un salto; la de `ai4i2020` es suave y se mantiene muy por encima de su
+propia línea de azar.*
 
-### Balance de clases
+## Por qué la accuracy miente en este problema
 
-- `failure`: `no` = 170, `yes` = 10.
-- **Prevalencia = 5.5556 %.**
-- **Accuracy del clasificador trivial mayoritario = 94.4444 %** — el número que
-  debe ir delante de cualquier accuracy que este repositorio reporte más
-  adelante. Un modelo con menos de 94.4444 % de accuracy es peor que no hacer
-  nada.
+**El clasificador que nunca predice un fallo acierta el 94.41 % de las veces
+en `lab180`, y el 96.61 % en `ai4i2020`.** Cualquier accuracy por debajo de
+esa línea es, literalmente, peor que no hacer nada — y la línea sube (no
+baja) cuanto más desbalanceada está la clase, independientemente de cuántas
+filas tenga el dataset.
 
-### Asociación univariante (AUC de Mann-Whitney)
+El resultado más contraintuitivo de `lab180` (CLAUDE.md §8.1) es este
+contraste, mejor leído como dos filas una al lado de la otra que como un
+número suelto:
 
-Ordenada por `|AUC − 0.5|` (distancia al azar), no por el AUC crudo: ordenar
-por AUC crudo esconde que `pressure_bar` es la **segunda** señal más fuerte
-del dataset, no la última — solo que apunta en dirección inversa.
+| modelo | ROC-AUC | recall (umbral 0.5) |
+|---|---|---|
+| `rf_balanced` | **0.9254** | 0.14 |
+| `logistic_balanced` | 0.9189 (peor) | **0.78** |
 
-| atributo | AUC | \|AUC − 0.5\| | p-valor | dirección |
-|---|---|---|---|---|
-| vibration_mm_s | 0.8503 | 0.3503 | 0.0002 | directa (la más fuerte) |
-| pressure_bar | 0.2515 | **0.2485** | 0.0085 | **inversa (la 2ª más fuerte)** |
-| temperature_c | 0.7259 | 0.2259 | 0.0167 | directa |
-| hours_since_maintenance | 0.7218 | 0.2218 | 0.0187 | directa |
-| load_percent | 0.6682 | 0.1682 | 0.0746 | **no significativa** |
+`rf_balanced` tiene el ROC-AUC más alto de los dos — y aun así detecta muchos
+menos fallos. El ROC-AUC mide **calidad de ordenación** y es **independiente
+del umbral**: `rf_balanced` ordena los 179 casos casi tan bien como
+`logistic_balanced`, y eso es real. Pero al umbral por defecto (0.5),
+`rf_balanced` comprime las probabilidades de sus positivos por debajo de esa
+línea, así que casi nunca clasifica a nadie como fallo. El ROC-AUC mide lo
+primero y lo premia; el recall mide lo segundo y lo castiga. **El umbral
+explica el recall de 0.14, NO el ROC-AUC de 0.9254.** Convertir esa
+probabilidad bien ordenada en una decisión de mantenimiento con un umbral
+distinto de 0.5 —el tema de la sección de calibración, más abajo— es
+precisamente lo que le falta a este resultado para dejar de ser
+contraintuitivo.
 
-`pressure_bar` con AUC < 0.5 significa que los fallos ocurren a presión
-**baja**, no alta: compatible con fuga o pérdida de lubricación/fluido
-hidráulico. `eda.univariate_auc` ya devuelve la tabla en este orden (por
-distancia a 0.5); es la tabla de este README la que hasta ahora no lo
-reflejaba.
+## Diagrama del pipeline
 
-### Correlaciones
+```mermaid
+flowchart LR
+    RAW["data/raw/*.csv<br/>(lab180 versionado,<br/>ai4i2020 vía pdm-cli download)"]
+    SCHEMA["DatasetAdapter.schema<br/>contrato pandera"]
+    QUAR[("data/quarantine/<br/>filas inválidas + motivo")]
+    ENG["adapter.engineer_features<br/>(features físicas + one-hot)"]
+    PIPE["sklearn.Pipeline<br/>imputer → scaler → classifier"]
+    CV["evaluate.py<br/>CV honesta + IC bootstrap/Wilson"]
+    CAL["calibration.py<br/>Platt / isotónica"]
+    THR["threshold.py<br/>umbral óptimo por coste"]
+    EXP["explain.py<br/>SHAP + estabilidad del árbol"]
+    REP["reports/*.json"]
+    HTML["report.py<br/>informe HTML"]
+    DASH["app/streamlit_app.py<br/>dashboard"]
 
-Todas las correlaciones de Pearson entre atributos tienen **|r| < 0.10**
-(máximo 0.0972, entre `vibration_mm_s` y `load_percent`). Las cinco variables
-son mutuamente independientes — una señal de que el dataset es simulado: en
-maquinaria física, carga → temperatura → viscosidad del lubricante → vibración
-forman una cadena causal acoplada.
+    RAW --> SCHEMA
+    SCHEMA -- inválidas --> QUAR
+    SCHEMA -- válidas --> ENG
+    ENG --> PIPE
+    PIPE --> CV
+    PIPE --> CAL
+    CAL --> THR
+    PIPE --> EXP
+    CV --> REP
+    THR --> REP
+    EXP --> REP
+    REP --> HTML
+    REP --> DASH
+```
 
-### Figuras
+`pipeline.py`, `evaluate.py` y `calibration.py` son exactamente el mismo
+código para `lab180` y `ai4i2020`: la única pieza específica de cada dataset
+es su `DatasetAdapter` (CLAUDE.md §13.1).
 
-![Barras de prevalencia con la línea de accuracy trivial](reports/figures/lab180/prevalencia.png)
-*La barra `yes` es 5.5556 % del total; la línea discontinua marca 94.4444 %,
-el accuracy que logra no hacer nada.*
+## Quickstart
 
-![Mapa de correlación entre sensores, escala fija en [-1, 1]](reports/figures/lab180/correlacion.png)
-*Plano por construcción: la celda más oscura fuera de la diagonal es 0.097 —
-las cinco variables son mutuamente independientes.*
+```bash
+git clone https://github.com/ajmedinaa-gif/predictive-maintenance-pipeline.git && cd predictive-maintenance-pipeline
+docker compose up pipeline    # genera reports/ para los dos datasets (tarda unos minutos)
+docker compose up dashboard   # http://localhost:8501
+```
 
-![Histogramas por sensor, clase superpuesta](reports/figures/lab180/histogramas_por_clase.png)
-*`vibration_mm_s` es donde la clase `yes` (naranja) se separa más de la `no`
-(azul); en `pressure_bar` el naranja cae hacia valores más bajos.*
+Sin Docker: `uv sync && make run && make dashboard` (ver [§
+Desarrollo](#desarrollo)).
 
-![Boxplots por sensor con los puntos individuales](reports/figures/lab180/boxplots_por_clase.png)
-*Cada punto es una observación: con 10 positivos, la caja `yes` no promedia
-más precisión de la que hay puntos para sostenerla — y se ve el -0.34 de
-`vibration_mm_s` por debajo de cero.*
+## Estructura del repo
 
-## Contrato de datos
+```
+src/predictive_maintenance/
+  datasets.py     DatasetAdapter (protocolo + lab180/ai4i2020), registro de datasets
+  schema.py       contratos pandera (rangos físicos por sensor)
+  data.py         validación + cuarentena
+  eda.py          análisis exploratorio puro (sin dibujar, sin imprimir)
+  plausibility.py auditor de plausibilidad (¿sintético o real?)
+  pipeline.py     fábrica de sklearn.Pipeline (imputer → scaler → classifier)
+  evaluate.py     CV honesta, IC bootstrap, IC de Wilson
+  calibration.py  Platt / isotónica, comparación de variantes
+  threshold.py    umbral de decisión por coste
+  explain.py      SHAP, estabilidad de la raíz del árbol
+  power.py        presupuesto estadístico, curva de aprendizaje
+  figures.py      todas las figuras PNG (matplotlib, backend Agg)
+  report.py       payload JSON + informe HTML (jinja2)
+  cli.py          pdm-cli (typer): download/eda/validate/run/train/
+                  calibrate/explain/limits/compare/report
+app/streamlit_app.py   dashboard (5 pestañas, lee reports/*.json)
+tests/                 cobertura >= 80 %
+config/                default.yaml (rutas, CV, semilla), costs.yaml
+data/raw/lab180/       versionado; data/raw/ai4i2020/ se descarga aparte
+notebooks/             anexo académico (ejecutado con Jupyter real)
+reports/               *.json + *.html + figures/ (PNG sí versionados)
+.github/workflows/     ci.yml, pages.yml
+Dockerfile, docker-compose.yml, Makefile
+```
 
-Ningún dato entra al pipeline sin pasar antes por un contrato ejecutable
-(`src/predictive_maintenance/schema.py`, un `pandera.DataFrameModel`): rangos
-físicamente posibles por sensor y las dos categorías válidas de `failure`. La
-fila que lo incumple no se corrige ni se descarta en silencio — va a
-[`data/quarantine/`](data/quarantine/), con el motivo exacto por el que se
-rechazó, para que alguien la revise.
+## Los dos datasets, en detalle
 
-`pdm-cli validate --dataset lab180` ejecuta el contrato y vuelca el resultado
-a `reports/validation_lab180.json`:
+### `lab180`: el contraejemplo
 
-- **180 filas leídas → 179 válidas, 1 en cuarentena.**
-- Motivo: `vibration_mm_s=-0.34 incumple greater_than_or_equal_to(0.0)`
-  (fila 82).
+⚠️ **Datos SIMULADOS de laboratorio**, no mediciones de campo —
+`data/raw/lab180/Lab1_engineering_failures.csv`, 180 filas, 6 columnas (5
+sensores + `failure`).
 
-### Por qué cuarentena y no imputación
+**Balance de clases:** `no` = 170, `yes` = 10 → prevalencia 5.5556 %,
+accuracy trivial 94.4444 %.
 
-`vibration_mm_s = -0.34` es un imposible físico: una amplitud RMS de
-vibración no puede ser negativa, así que no es un valor extremo que suavizar,
-es un sensor que miente. Imputar ese valor —con la media, la mediana o un
-modelo— habría fabricado un dato a partir de una lectura que sabemos que está
-mal, y ese dato fabricado habría entrado a entrenar un modelo como si fuera
-una medición real.
+**La anomalía:** la fila 82 registra `vibration_mm_s = -0.34`. Una amplitud
+RMS de vibración no puede ser negativa: es un imposible físico, no un valor
+extremo. Esa fila va a **cuarentena** (`pdm-cli validate --dataset lab180`:
+180 filas leídas → 179 válidas, 1 en cuarentena), no se imputa — imputar un
+sensor que miente sería fabricar un dato, no rescatar uno perdido.
 
-Si no la hubiéramos visto, la fila habría entrado tal cual al split de
-entrenamiento/test: un valor negativo en una columna que después se escala y
-se pasa a una regresión logística o un árbol no lanza ningún error, así que el
-error no se detecta comparando un `Pipeline` contra un contrato — se detecta
-prácticamente porque alguien mira el mínimo de una tabla descriptiva a mano
-(CLAUDE.md §6.1). Con un contrato ejecutable, esa comparación deja de depender
-de que alguien se acuerde de mirar.
+**Asociación univariante** (AUC de Mann-Whitney, ordenada por distancia a
+0.5): `vibration_mm_s` (0.8503, la más fuerte), `pressure_bar` (0.2515,
+**inversa** — presión baja, no alta, precede al fallo), `temperature_c`
+(0.7259), `hours_since_maintenance` (0.7218), `load_percent` (0.6682, **no
+significativa**, p=0.075).
 
-Ningún otro atributo de `lab180` viola su rango físico: la única fila en
-cuarentena es la 82, y **avisos de calidad: ninguno** — la prevalencia
-(5.5556 %), los nulos por columna (máximo 2.22 %) y los duplicados (0) están
-todos dentro de los umbrales de aviso de `config/default.yaml`.
+**Correlaciones:** todas |r| < 0.10 (máximo 0.0972, entre `vibration_mm_s` y
+`load_percent`) — las cinco variables son mutuamente independientes, la
+primera firma de que el dataset es sintético.
 
-## ¿Son reales estos datos?
+**¿Son reales estos datos? No.** El auditor de plausibilidad
+(`plausibility.py`) dictamina `probablemente sintético`, combinando dos
+firmas fuertes y deterministas: independencia mutua total (arriba) y un
+patrón de nulos demasiado regular (12 nulos, exactamente 4/4/4 entre
+`temperature_c`/`vibration_mm_s`/`pressure_bar`, que jamás se solapan en la
+misma fila, y ninguno cae en la clase minoritaria). Esto no descalifica
+`lab180` como ejercicio: lo define como **contraejemplo** de lo que NO se
+puede concluir con pocos datos.
 
-**No. El auditor de plausibilidad (`src/predictive_maintenance/plausibility.py`)
-dictamina: `probablemente sintético`.**
-
-El veredicto combina dos firmas fuertes, deterministas, escritas a
-`reports/plausibility_lab180.json`:
-
-1. **Independencia mutua total.** En una máquina real, carga → temperatura →
-   viscosidad del lubricante → vibración forman una cadena causal acoplada:
-   se espera |r| ≥ 0.15 entre algún par de sensores. La correlación máxima
-   observada entre `vibration_mm_s` y `load_percent` es **0.0972**, muy por
-   debajo del umbral. Ningún par de atributos está acoplado.
-2. **Patrón de nulos demasiado regular.** 12 nulos, repartidos en **exactamente
-   4, 4 y 4** entre `temperature_c`, `vibration_mm_s` y `pressure_bar`, que
-   **jamás se solapan** en la misma fila (ninguna fila tiene 2 nulos o más). Un
-   sensor real falla por causas independientes entre sí; que el recuento
-   coincida exacto entre tres columnas distintas es la firma de un generador,
-   no de un fallo de instrumentación.
-
-Como evidencia adicional, de apoyo —no decisiva por sí sola—, el auditor
-también comprueba la distribución del último dígito decimal de cada sensor
-(`digit_distribution`): en los cinco atributos es compatible con muestreo
-uniforme (`chi²`, p > 0.05 en todos), consistente con datos generados por
-`numpy.random.uniform` y redondeo, no con la cuantización de un sensor físico
-de bajo coste.
-
-Esto no descalifica `lab180` como ejercicio: lo define. Sirve de
-**contraejemplo** en este repositorio — qué NO se puede concluir con pocos
-datos simulados — y nunca se presenta como resultado principal (CLAUDE.md
-§13).
-
-## Resultados
-
-Todos los números de esta sección salen de `reports/metrics_lab180.json`,
-generado por `pdm-cli train --dataset lab180`, y de la tabla que ese mismo
-comando escribe en `reports/results_lab180.md`. Ningún número está escrito a
-mano.
-
-**Solo se entrena sobre las filas que pasan el contrato de datos** (CLAUDE.md
-§2.9): 179 de las 180 filas de `lab180` — la fila 82 (`vibration_mm_s =
--0.34`) sigue en cuarentena, nunca entra al split. Por eso la prevalencia real
-de entrenamiento es 10/179 = 5.5866 %, no el 5.5556 % de la tabla descriptiva
-de §6 (calculada sobre las 180 filas crudas). Es una diferencia de una fila;
-se explica en el CHECKPOINT de esta fase.
-
-Protocolo: `RepeatedStratifiedKFold(n_splits=5, n_repeats=10, random_state=42)`
-para la tabla de medias; un único `StratifiedKFold(n_splits=5, shuffle=True,
-random_state=42)` para las matrices de confusión y las curvas PR/ROC (CLAUDE.md
-§8, §8.2) — repetir ahí contaría la misma fila varias veces con predicciones de
-modelos distintos.
+**Resultados** (`RepeatedStratifiedKFold(5, n_repeats=10)`, CLAUDE.md §8):
 
 | modelo | PR-AUC | ROC-AUC | recall | precision | bal.acc | accuracy | Brier |
 |---|---|---|---|---|---|---|---|
@@ -189,406 +215,161 @@ modelos distintos.
 | **rf_balanced** | 0.6117 | **0.9254** | **0.1400** | 0.2200 | 0.5659 | 0.9441 | 0.0411 |
 | gradient_boosting | 0.4387 | 0.8496 | 0.1400 | 0.1700 | 0.5576 | 0.9285 | 0.0657 |
 
-Como en CLAUDE.md §8.1, las dos filas `dummy_*` van primero: cualquier modelo
-por debajo de su accuracy (0.9441) es peor que no hacer nada. `logistic_plain`
-—sin `class_weight`— es la base de la calibración y el umbral por coste de la
-Fase 4 (CLAUDE.md §9.2); no está en la tabla original de §8.1.
+`logistic_plain` —sin `class_weight`— es a la vez el **mejor PR-AUC** de la
+tabla y el **mejor Brier** (0.0329): no es casualidad, es el único modelo
+`plain` de los dos logísticos, el que no cuenta el desbalance dos veces. Es
+exactamente el modelo que la Fase 4 designa para calibrar.
 
-### La matriz de confusión agregada, sin repetir
+**Umbral por coste.** `config/costs.yaml` declara supuestos (CLP, no medidos
+en campo): C_FN=10 000 000, C_FP=500 000, C_TP=1 500 000, C_TN=0. Como C_TP
+no es cero, el umbral óptimo teórico no es `C_FP/(C_FP+C_FN)` (0.0476, mal)
+sino `t* = (C_FP−C_TN)/((C_FP−C_TN)+(C_FN−C_TP)) = 0.0556`. Con
+`logistic_plain` + Platt y el umbral optimizado **dentro de cada fold de
+entrenamiento** (nunca sobre el fold de test):
 
-Sobre el mismo `StratifiedKFold(5, shuffle=True, seed 42)` de CLAUDE.md §8.2,
-cada fila recibe una predicción out-of-fold exactamente una vez:
+| variante | Brier | PR-AUC | umbral empírico | ahorro sobre t=0.5 |
+|---|---|---|---|---|
+| logistic balanced | 0.0643 | 0.5918 | 0.470 | **−10.5 %** (empeora) |
+| logistic plain (sin calibrar) | 0.0329 | **0.6232** | 0.150 | 46.3 % |
+| **logistic plain + Platt** | 0.0370 | 0.5838 | 0.141 | **64.7 %** |
+| logistic plain + isotónica | **0.0341** | 0.5582 | 0.091 | 24.0 % |
 
-| modelo | TN | FP | FN | TP | recall | accuracy | IC Wilson del recall |
-|---|---|---|---|---|---|---|---|
-| tree_default | 157 | 12 | 8 | 2 | 0.20 | 0.8883 | [0.057, 0.510] |
-| tree_shallow_balanced | 152 | 17 | 7 | 3 | 0.30 | 0.8659 | [0.108, 0.603] |
-| rf_balanced | 168 | 1 | 10 | **0** | 0.00 | 0.9385 | [0.000, 0.278] |
-| logistic_balanced | 157 | 12 | 2 | **8** | 0.80 | 0.9218 | **[0.490, 0.943]** |
+`logistic_plain` + Platt es la decisión del proyecto — no por tener el mejor
+Brier ni el mejor PR-AUC de la tabla (no los tiene), sino por tener, con
+diferencia, el mejor ahorro. `logistic_balanced` es el contraejemplo de la
+regla dura "nunca combinar `class_weight="balanced"` con umbral por coste":
+es la única fila cuyo coste al umbral "óptimo" es *peor* que quedarse en 0.5
+— el desbalance ya se contó una vez al entrenar, y el umbral intenta
+corregirlo otra vez sobre un fold de test que nunca vio.
 
-El IC del recall de `logistic_balanced` coincide EXACTO con CLAUDE.md §8.2
-([0.490, 0.943]) — 8 aciertos sobre 10 positivos no depende de cuántas filas
-haya en el resto del dataset. El de `rf_balanced` también coincide: **0 de 10
-positivos detectados**, igual que en CLAUDE.md.
+**Sobre la fórmula teórica frente al barrido empírico:** aplicar t*=0.0556 a
+las predicciones de `logistic_plain`+Platt cuesta 49.0 MM CLP; el umbral
+empírico (0.126, por barrido simple) cuesta 29.0 MM CLP. El barrido gana
+porque t* es óptimo solo si el modelo está **perfectamente** calibrado, y con
+10 positivos ningún modelo lo está — la distancia entre ambos es, ella misma,
+una medida de cuán lejos está la calibración real de la ideal, no un error de
+ninguno de los dos cálculos.
 
-### CV anidada de demostración
+**Qué NO podemos afirmar:**
+- El IC de Wilson del recall (8/10 aciertos) es **[0.490, 0.943]** — 45 pp de
+  ancho. "Recall 0.80" y "recall 0.50" son, con esta muestra, indistinguibles.
+- La curva de aprendizaje de PR-AUC **no sube con más datos: es ruido**
+  (bandas de hasta ±0.30, ver `reports/figures/lab180/learning_curve.png`).
+- La raíz del árbol tampoco es estable: sobre 300 bootstraps estratificados,
+  `vibration_mm_s` es la raíz solo el 56.0 % de las veces, no siempre
+  (`tests/test_tree_stability.py` protege que esto se mantenga bajo 70 %).
+- Tres métodos de importancia (SHAP, AUC univariante, estabilidad de la raíz)
+  dan **tres órdenes distintos** — esperable con 10 positivos, no un error.
+- Para estimar un recall de 0.80 con ±10 pp de margen harían falta 62
+  fallos (~1110 ciclos de máquina a la prevalencia actual). Hoy hay 10.
 
-`evaluate.nested_cv` (Vabalas et al. 2019) sobre `logistic_balanced`, barriendo
-`C ∈ {0.01, 0.1, 1, 10}` con `GridSearchCV` interno de 3 folds en cada uno de
-los 50 folds externos: PR-AUC media 0.7016, ROC-AUC media 0.9254. El valor de
-`C` elegido con más frecuencia es el más pequeño (`C=0.01`, en 27 de 50 folds
-externos) — con 10 positivos, el interno tiende a preferir la regularización
-más fuerte disponible en la rejilla.
+### `ai4i2020`: la contraparte real
 
-![Curvas PR y ROC de todos los modelos](reports/figures/lab180/curvas_pr_roc.png)
-*Predicciones out-of-fold de un único `StratifiedKFold(5)`: la línea de azar
-del panel PR está en la prevalencia real (0.0559), no en 0.5. `rf_balanced`
-ordena casi tan bien como `logistic_balanced` en ambos paneles — su problema no
-es la curva, es el umbral por defecto (ver más abajo).*
+UCI id=601 (Matzka, 2020), descargado con
+`ucimlrepo.fetch_ucirepo(id=601)` vía `pdm-cli download --dataset ai4i2020`
+(medido, no un plan: 10 000 filas, 339 positivos = 3.39 %, sin nulos).
+Features: `type` (L/M/H), `air_temperature_k`, `process_temperature_k`,
+`rotational_speed_rpm`, `torque_nm`, `tool_wear_min` — más las derivadas
+`power_w` (par × velocidad angular), `temp_delta_k` (disipación térmica) y
+`wear_x_torque` (sobreesfuerzo acumulado), calculadas en
+`AI4I2020Adapter.engineer_features`.
 
-## Por qué la accuracy miente en este problema
+Los cinco modos de fallo documentados (TWF=46, HDF=115, PWF=95, OSF=98,
+RNF=19) suman **373** sobre 339 positivos — verificado, no un error de
+conteo: 348 filas tienen algún modo marcado (24 con dos o más a la vez), pero
+solo 330 de esas 348 tienen también `machine_failure=1` (18 marcan un modo
+sin activar el indicador general); las 9 filas que faltan hasta 339 tienen
+`machine_failure=1` sin ningún modo marcado — una inconsistencia conocida del
+dataset original entre el indicador general y sus cinco sub-modos. Ninguno de
+los cinco modos entra como feature de modelado: son casi deterministas de
+`machine_failure` y usarlos sería fuga del objetivo.
 
-**El clasificador que nunca predice un fallo acierta el 94.41 % de las veces.**
-Cualquier accuracy de la tabla anterior que no supere ese número es, literalmente,
-peor que no hacer nada.
+`plausibility.audit()` dictamina **"compatible con datos reales"** (frente a
+"probablemente sintético" de `lab180`): la correlación máxima entre atributos
+es 0.8761, entre `air_temperature_k` y `process_temperature_k` — muy por
+encima del umbral de 0.15, confirmando que las features están físicamente
+acopladas. `power_w` correlaciona con `PWF` de forma no lineal (en forma de
+U: la desviación típica de `power_w` en filas con `PWF=1` es casi el triple
+que en el resto — el mecanismo real es que PWF se dispara con potencia
+anormalmente alta O baja); `temp_delta_k` correlaciona con `HDF` de forma
+directa y clara (las 115 filas con `HDF=1` tienen `temp_delta_k` entre 7.6 y
+8.6 K, frente a una media general de 10.0 K).
 
-El resultado más contraintuitivo de la tabla es este contraste, mejor leído
-como dos filas una al lado de la otra que como un número suelto:
+Resultados completos (`StratifiedKFold(5)` sin repetir, `pdm-cli run
+--dataset ai4i2020`), calibración, explicabilidad y límites estadísticos:
+ver `reports/report_ai4i2020.html` (autocontenido, se abre con cualquier
+navegador sin instalar nada) o la pestaña correspondiente del dashboard.
 
-| modelo | ROC-AUC | recall |
-|---|---|---|
-| rf_balanced | **0.9254** | 0.14 |
-| logistic_balanced | 0.9189 (peor) | **0.78** |
+## Decisiones de diseño y alternativas descartadas
 
-`rf_balanced` tiene el ROC-AUC más alto de los dos — y aun así detecta muchos
-menos fallos: 0.14 de recall medio en la CV repetida, **0 de 10** en la matriz
-de confusión agregada de una sola pasada (§8.2). `logistic_balanced`, con un
-ROC-AUC *peor*, detecta el 0.78 (8 de 10 en esa misma matriz) y tiene, además,
-un PR-AUC casi el triple (0.6748 frente a 0.6117 de `rf_balanced`).
+- **`DatasetAdapter` en vez de un `ColumnTransformer` en el pipeline.** La
+  alternativa obvia para manejar la columna categórica `type` de `ai4i2020`
+  era meter un `ColumnTransformer` dentro de `pipeline.py`. Se descartó:
+  `AI4I2020Adapter.engineer_features` ya entrega una matriz enteramente
+  numérica (one-hot incluido) antes de que `X` llegue al `Pipeline`, así que
+  `pipeline.py` no cambia una sola línea entre datasets — más simple, y
+  confirmado por un test que exige que el primer paso del `Pipeline` sea
+  literalmente un `SimpleImputer`.
+- **`positive_label="yes"/"no"` en `ai4i2020`, nunca `"1"/"0"`.** Hallazgo
+  real de la Fase 5: con etiquetas que son dígitos puros,
+  `RandomForestClassifier(class_weight="balanced")` dispara un bug de
+  scikit-learn en su recomputación interna de pesos por bootstrap
+  (reproducible con un `RandomForestClassifier` plano, ajeno a este
+  proyecto). Usar el mismo vocabulario que `lab180` lo evita de raíz.
+- **Por qué NO SMOTE ni oversampling sintético.** Con 10 positivos,
+  interpolar vecinos sintéticos repite el ruido de muestreo de esos 10 casos
+  con precisión falsa. El desbalance se maneja con `class_weight="balanced"`
+  o con un umbral de decisión distinto de 0.5 — nunca las dos cosas a la vez.
+- **Por qué NO un único holdout train/test en `lab180`.** Un split 80/20 deja
+  ~2 positivos en test: un solo acierto o fallo mueve el recall 50 puntos.
+  `RepeatedStratifiedKFold(5, n_repeats=10)` promedia 50 particiones y
+  permite un IC bootstrap que signifique algo (Varoquaux, 2018).
+- **Por qué PR-AUC y no ROC-AUC como métrica primaria.** Con 94-97 % de la
+  clase mayoritaria, el ROC-AUC puede ser alto mientras el modelo es inútil
+  en la práctica (`rf_balanced` en `lab180`). El PR-AUC penaliza los falsos
+  positivos en relación con los verdaderos positivos, no con los verdaderos
+  negativos, que sobran (Saito & Rehmsmeier, 2015).
+- **Por qué CV anidada para elegir hiperparámetros.** Elegir `C` mirando la
+  métrica en el mismo fold que se reporta como resultado final produce una
+  estimación optimista. `evaluate.nested_cv` separa el `GridSearchCV` interno
+  del fold externo que nunca vio esos datos (Vabalas et al., 2019).
+- **La comparación de "IC del recall" usa el modelo de mejor PR-AUC de cada
+  dataset; la de "umbral óptimo" usa siempre `logistic_plain`+Platt en los
+  dos.** Son comparables por razones distintas: la primera ilustra cuánto se
+  estrecha un IC con más datos, sea cual sea el mejor modelo de cada uno; la
+  segunda mide la misma ruta de decisión económica aplicada dos veces, y
+  mezclar ambos criterios en una sola fila fue un error real de una versión
+  anterior de esta tabla — corregido y documentado en el historial de commits.
+- **Por qué `pdm-cli report` no dibuja nada.** `report.py` solo lee
+  `reports/*.json` y las figuras PNG ya generadas por `figures.py` (las
+  incrusta en base64). Mantiene la regla del proyecto de que el dibujo vive
+  en un único módulo.
 
-**Cómo se formula correctamente ese contraste** (importa, porque es el
-resultado titular del repo): el ROC-AUC mide **calidad de ordenación** y es
-**independiente del umbral** — `rf_balanced` ordena los 179 casos casi tan bien
-como `logistic_balanced`, y eso es real. Pero al umbral por defecto (0.5),
-`rf_balanced` comprime las probabilidades de sus positivos por debajo de esa
-línea, así que casi nunca clasifica a nadie como fallo. El ROC-AUC mide lo
-primero y lo premia; el recall mide lo segundo y lo castiga. **El umbral
-explica el recall de 0.14, NO el ROC-AUC de 0.9254** — el ROC-AUC no depende de
-ningún umbral, así que no hay umbral que lo explique. Convertir esa
-probabilidad bien ordenada en una decisión de mantenimiento con un umbral
-distinto de 0.5 es, precisamente, el tema de la Fase 4.
+## Limitaciones
 
-Ese mismo umbral, además, es exactamente lo que le falta a `logistic_plain`
-para ser la mejor fila de la tabla sin más ajuste: ver más abajo.
+Ver [`MODEL_CARD.md`](MODEL_CARD.md) para el detalle completo: uso previsto,
+uso fuera de alcance, y por qué el modelo entrenado sobre `lab180` en
+particular **no debe desplegarse** tal cual (10 positivos, sin eje temporal,
+IC del recall casi tan ancho como el rango [0,1]).
 
-### `logistic_plain`: el mejor ordenador y el mejor calibrado, y no es casualidad
+## Desplegar el dashboard en Streamlit Community Cloud
 
-`logistic_plain` —sin `class_weight`— es a la vez el modelo con **mejor PR-AUC**
-de toda la tabla (0.7153, por delante incluso de `logistic_balanced`) y con
-**mejor Brier de toda la tabla**: 0.0329, frente a 0.0667 de `logistic_balanced`
-—su comparación más directa— y por debajo también de `rf_balanced` (0.0411), el
-siguiente mejor. No es casualidad: es el único modelo `plain` de los dos
-logísticos, el que no cuenta el desbalance dos veces. `class_weight="balanced"`
-reescala la función de pérdida durante el ajuste para compensar la clase
-minoritaria; eso mueve la frontera de decisión y mejora el recall al umbral
-0.5, pero también distorsiona las probabilidades que el modelo reporta, que
-dejan de reflejar frecuencias reales — de ahí el Brier peor de
-`logistic_balanced`. `logistic_plain` no toca esa distribución: por eso sus
-probabilidades son las más fiables de la tabla, el punto de partida correcto
-para calibrar y no la propia calibración.
-
-Es exactamente el modelo que CLAUDE.md §9.2 designa para la Fase 4: calibración
-de Platt sobre `logistic_plain`, y un umbral de decisión por coste optimizado
-sobre esas probabilidades ya fiables — nunca `class_weight` y umbral por coste
-a la vez (CLAUDE.md §2.5), porque sería contar el desbalance dos veces.
-
-## Decisiones de diseño
-
-- **Por qué NO SMOTE ni oversampling sintético.** Con 10 positivos, interpolar
-  vecinos sintéticos entre ellos no añade información: repite el ruido de
-  muestreo de esos 10 casos con una precisión falsa. `pipeline.py` no incluye
-  ningún paso de reequilibrado de clases; el desbalance se maneja con
-  `class_weight="balanced"` (en los modelos `_balanced`) o, en la Fase 4, con
-  un umbral de decisión distinto de 0.5 — nunca las dos cosas a la vez
-  (CLAUDE.md §2.5).
-- **Por qué NO un único holdout train/test.** Con 10 positivos, un split
-  80/20 deja ~2 positivos en test: un solo acierto o fallo mueve el recall 50
-  puntos porcentuales. `RepeatedStratifiedKFold(5, n_repeats=10)` promedia 50
-  particiones distintas — el intervalo de confianza que sale de ahí
-  (`bootstrap_ci`) es la única forma honesta de decir cuánto se puede confiar
-  en la media. Varoquaux, G. (2018). *Cross-validation failure: small sample
-  sizes lead to large error bars.* NeuroImage 180: 68-77.
-- **Por qué PR-AUC y no ROC-AUC como métrica primaria.** La sección anterior
-  es el ejemplo: con 94 % de la clase mayoritaria, el ROC-AUC puede ser alto
-  mientras el modelo es inútil en la práctica (`rf_balanced`). El PR-AUC
-  penaliza los falsos positivos en relación con los verdaderos positivos, no
-  con los verdaderos negativos, que sobran. Saito, T., Rehmsmeier, M. (2015).
-  *The Precision-Recall Plot Is More Informative than the ROC Plot When
-  Evaluating Binary Classifiers on Imbalanced Datasets.* PLOS ONE 10(3):
-  e0118432.
-- **Por qué CV repetida y no una sola CV de 5 folds.** Un único reparto en
-  folds, con 10 positivos, es una muestra de tamaño 10 de por sí: repetir el
-  reparto 10 veces con semillas distintas (mismo `random_state` global, otra
-  partición interna) es lo que permite calcular un intervalo de confianza que
-  refleje la varianza del propio proceso de partición, no solo la del modelo.
-- **Por qué CV anidada para elegir hiperparámetros.** Elegir `C` (o
-  `max_depth`, o `n_estimators`) mirando la métrica en el mismo fold que se
-  reporta como resultado final produce una estimación optimista: el proceso de
-  selección de modelo se ajusta al ruido de ESA partición. `evaluate.nested_cv`
-  separa el `GridSearchCV` interno (elige hiperparámetros) del fold externo
-  (nunca visto por el interno) que se usa para medir. Vabalas, A. et al.
-  (2019). *Machine learning algorithm validation with a limited sample size.*
-  PLOS ONE 14(11): e0224365.
-
-## El umbral 0.5 es una decisión, no un valor por defecto
-
-Un modelo entrena para ordenar probabilidades; convertir esa probabilidad en
-"mandar a mantenimiento sí/no" es una decisión económica aparte, y 0.5 no
-tiene ningún significado económico en este problema — es un accidente de que
-la pérdida logística es simétrica. `config/costs.yaml` declara los supuestos
-(CLP, **no medidos en campo**, configurables):
-
-| resultado | coste | interpretación |
-|---|---|---|
-| Falso negativo (`C_FN`) | 10 000 000 | parada no planificada, daño al equipo |
-| Falso positivo (`C_FP`) | 500 000 | inspección innecesaria de un equipo sano |
-| Verdadero positivo (`C_TP`) | 1 500 000 | mantenimiento planificado: también cuesta |
-| Verdadero negativo (`C_TN`) | 0 | referencia |
-
-Como `C_TP` no es cero, el umbral óptimo para un modelo **perfectamente
-calibrado** no es la fórmula simplificada `C_FP/(C_FP+C_FN)` (que da 0.0476 y
-está mal) sino la que sí tiene en cuenta que un verdadero positivo también
-cuesta:
-
-```
-t* = (C_FP − C_TN) / ((C_FP − C_TN) + (C_FN − C_TP))
-   = 500 000 / (500 000 + 10 000 000 − 1 500 000)
-   = 500 000 / 9 000 000
-   = 0.0556
-```
-
-`tests/test_threshold.py` simula un modelo perfectamente calibrado (`y_prob`
-como la probabilidad real, `y_true ~ Bernoulli(y_prob)`) y verifica que
-`threshold.optimal_threshold` converge a 0.0556 con tolerancia 0.01.
-
-Con `logistic_plain` (CLAUDE.md §9.2: el único modelo del zoo sin
-`class_weight`, así que sus probabilidades no están distorsionadas por
-reescalar la pérdida) calibrado con Platt (`sigmoid`) y el umbral optimizado
-**dentro de cada fold de entrenamiento** (nunca sobre el fold de test —
-CLAUDE.md §2.7), sobre las 179 filas validadas:
-
-| variante | Brier | PR-AUC | umbral empírico | coste t=0.5 | coste t* | ahorro |
-|---|---|---|---|---|---|---|
-| logistic balanced | 0.0643 | 0.5918 | 0.470 | 38.0 MM | 42.0 MM | **−4.0 MM (−10.5 %)** |
-| logistic plain (sin calibrar) | 0.0329 | **0.6232** | 0.150 | 67.0 MM | 36.0 MM | 31.0 MM (46.3 %) |
-| **logistic plain + Platt** | 0.0370 | 0.5838 | 0.141 | 100.5 MM | **35.5 MM** | **65.0 MM (64.7 %)** |
-| logistic plain + isotónica | **0.0341** | 0.5582 | 0.091 | 50.0 MM | 38.0 MM | 12.0 MM (24.0 %) |
-
-**El PR-AUC más alto de la tabla es el de `logistic_plain` sin calibrar
-(0.6232), no el de Platt (0.5838).** Calibrar CUESTA algo de PR-AUC — Platt
-reescala las probabilidades para que se puedan tomar decisiones de coste con
-ellas, y esa reescala no está optimizada para ordenar mejor los casos, solo
-para que la probabilidad devuelta signifique lo que dice. Se acepta esa
-pérdida de ordenación a cambio de tener una probabilidad utilizable: sin
-calibrar, el umbral óptimo por coste no tendría ninguna garantía de
-significar nada.
-
-**`logistic_plain` + Platt es la decisión del proyecto** — no porque tenga el
-mejor Brier de las dos variantes calibradas (no lo tiene: la isotónica, por
-azar de qué 8 positivos cayeron en qué fold, sale 0.0341 frente a 0.0370 esta
-vez), ni el mejor PR-AUC (tampoco: ver el párrafo anterior), sino porque tiene
-más del doble de ahorro que la isotónica sobre el mismo protocolo.
-`logistic_balanced` está en la tabla como contraejemplo de la regla dura de
-CLAUDE.md §2.5 — **nunca combinar `class_weight="balanced"` con el umbral por
-coste**: es la única fila cuyo coste al umbral "óptimo" es *peor* que quedarse
-en 0.5, porque el desbalance ya se contó una vez al entrenar y el umbral
-intenta corregirlo otra vez, sobre un fold de test que nunca vio.
-
-**Ese ahorro negativo (−10.5 %) no es un resultado posible con selección de
-umbral *in-sample*: el barrido de `optimal_threshold` incluye 0.5 entre sus
-candidatos, así que el mínimo nunca puede costar más que quedarse en 0.5** —
-si el umbral se eligiera y se midiera sobre los mismos datos, el "ahorro"
-nunca bajaría de 0 %. Que aquí sí baje es la prueba de que el umbral se elige
-**dentro** del fold de entrenamiento y se aplica a un fold de test que nunca
-vio (regla dura CLAUDE.md §2.7) — el procedimiento correcto, no un error. La
-segunda lectura es igual de importante: con 10 positivos, la propia
-optimización del umbral sobreajusta — el umbral que minimiza el coste en el
-fold de entrenamiento (donde `class_weight="balanced"` ya distorsionó las
-probabilidades) no generaliza, y en `logistic_balanced` generaliza tan mal que
-empeora respecto de no optimizar nada.
-
-![Coste total frente al umbral de decisión](reports/figures/lab180/cost_vs_threshold.png)
-*Curva de coste de `logistic_plain` + Platt: el mínimo está muy por debajo de
-0.5, cerca de t\*. La línea negra marca el coste al umbral por defecto; la
-naranja, al umbral empírico.*
-
-![Curva de fiabilidad de las tres variantes de logistic_plain](reports/figures/lab180/calibration_curve.png)
-*Con 10 positivos repartidos en 5 folds de test (~2 cada uno), la curva de
-fiabilidad es ruidosa por construcción — cada bin tiene pocas observaciones.
-Ninguna de las tres variantes sigue la diagonal con precisión; es la
-calibración que hay, no una que se pueda mejorar suavizando el gráfico.*
-
-## La fórmula no gana al barrido, y eso es un hallazgo
-
-Sobre las mismas predicciones out-of-fold de `logistic_plain` + Platt,
-aplicar el umbral **teórico** (0.0556) cuesta **49.0 MM CLP**. Aplicar el
-umbral **empírico** que minimiza el coste por barrido (0.126) cuesta
-**29.0 MM CLP**. El barrido gana por 20 MM CLP — casi un 40 % menos.
-
-Esto no es una contradicción entre §9.1 y esta sección: son dos cosas
-distintas que apuntan en la misma dirección. La fórmula teórica es el **ancla**
-que demuestra que 0.5 es absurdo aquí — el umbral correcto está un orden de
-magnitud más abajo, y eso ya es la conclusión importante. Pero `t*` es óptimo
-solo si el modelo está **perfectamente** calibrado, y con 10 positivos ningún
-modelo lo está: la calibración de Platt es una aproximación razonable, no
-exacta. El barrido empírico dentro de cada fold (regla dura de CLAUDE.md §2.7)
-es el **procedimiento operativo** — el que de verdad se usaría en producción.
-La distancia entre los dos (20 MM CLP, en esta medición) es, ella misma, una
-medida de cuán lejos está el modelo de la calibración perfecta que asume la
-fórmula — no un error de ninguno de los dos cálculos.
-
-## Qué NO podemos afirmar
-
-Tres límites medidos, no supuestos, todos con código en
-`src/predictive_maintenance/power.py` y `explain.py`:
-
-- **El intervalo de confianza del recall es casi tan ancho como el propio
-  rango [0, 1].** Con 8 aciertos sobre 10 positivos, el IC de Wilson es
-  **[0.490, 0.943]** — 45 puntos porcentuales de anchura. "Recall 0.80" y
-  "recall 0.50" son, con esta muestra, estadísticamente indistinguibles.
-- **La curva de aprendizaje no sube con más datos: es ruido.**
-
-  ![Curva de aprendizaje de PR-AUC](reports/figures/lab180/learning_curve.png)
-  *No suavizada a propósito: con 10 positivos, añadir observaciones de
-  entrenamiento no produce una tendencia creciente — produce esto.*
-
-- **La raíz del árbol tampoco es estable.** Sobre 300 bootstraps
-  estratificados, `vibration_mm_s` —el atributo con más señal univariante,
-  CLAUDE.md §6.4— es el primer corte solo el **56.0 %** de las veces, no
-  siempre (`tests/test_tree_stability.py` protege explícitamente que esto se
-  mantenga por debajo del 70 %).
-
-  ![Estabilidad de la raíz del árbol](reports/figures/lab180/tree_root_stability.png)
-
-- **Tres métodos de importancia, tres órdenes distintos — y eso es
-  esperable, no un error.** SHAP pone `hours_since_maintenance` primero
-  (importancia media 1.07, por delante de `vibration_mm_s` con 1.02); la
-  asociación univariante pone `vibration_mm_s` primero (AUC 0.850, la más
-  alejada de 0.5); la estabilidad de la raíz del árbol también pone
-  `vibration_mm_s` primero, pero solo por una mayoría del 56 %, no un
-  consenso. Con 10 positivos, tres formas razonables de medir "qué atributo
-  importa más" no tienen por qué coincidir — y no coinciden. Por eso este
-  repositorio no afirma qué sensor "causa" el fallo: afirma qué mide cada
-  método, y deja ver que discrepan.
-
-**La recomendación que se sigue de esto**: para estimar un recall de 0.80 con
-un margen de ±10 puntos porcentuales haría falta observar **62 fallos** —
-aproximadamente **1116 ciclos de máquina** a la prevalencia actual (5.5556 %,
-CLAUDE.md §6.2). Hoy hay 10 fallos y 180 ciclos. Para ±5 pp harían falta 246
-fallos — unos 4428 ciclos. `lab180` no tiene esos datos, y este repositorio no
-los va a inventar: ver [`MODEL_CARD.md`](MODEL_CARD.md), sección "Por qué este
-modelo no debe desplegarse".
-
-*(Sobre las 179 filas que realmente entrenan el modelo, la prevalencia es
-5.5866 % en vez de 5.5556 % — misma lógica que CLAUDE.md §8.1 y §9.1b: los 62
-fallos corresponden a 1110 ciclos, no 1116. Una diferencia de una fila, no una
-discrepancia que cuadrar.)*
-
-## Explicabilidad
-
-`logistic_plain` (el modelo base de la calibración de Platt) se explica con
-`shap.LinearExplainer`, sobre el espacio ya imputado y escalado que ve el
-clasificador — la calibración es una transformación monótona 1D que no cambia
-qué atributo empuja la predicción, solo reescala la probabilidad final.
-
-![Beeswarm de valores SHAP](reports/figures/lab180/shap_beeswarm.png)
-*Vibración alta, horas desde mantenimiento altas y presión BAJA empujan hacia
-`failure="yes"` — coherente con CLAUDE.md §6.4 y §11 (una presión baja es
-compatible con fuga o pérdida de estanqueidad, no con más estrés mecánico).*
-
-![Waterfalls de los 10 casos positivos](reports/figures/lab180/shap_waterfalls_positivos.png)
-*Con solo 10 fallos, tiene sentido mirarlos uno a uno: no todos los positivos
-llegan a "yes" por el mismo atributo — la fila 71, por ejemplo, la domina la
-presión; la fila 40, la vibración.*
-
-## Un pipeline, dos datasets
-
-`lab180` es un contraejemplo deliberado: 180 filas simuladas, 10 positivos,
-variables mutuamente independientes. `ai4i2020` (UCI id=601, Matzka 2020) es
-lo contrario en cada uno de esos ejes: 10 000 filas reales, 339 positivos,
-features físicamente acopladas (`air_temperature_k` y `process_temperature_k`
-correlacionan 0.8761 — muy por encima del umbral de 0.15 que en `lab180` nunca
-se cruza). El mismo `pdm-cli run --dataset <nombre>` corre sobre los dos
-porque todo lo específico de cada dataset vive en su `DatasetAdapter`
-(`src/predictive_maintenance/datasets.py`): dónde está el CSV, qué contrato
-`pandera` lo valida, y cómo se derivan sus features de modelado
-(`engineer_features`). `pipeline.py`, `evaluate.py` y `calibration.py` no
-cambian una sola línea entre uno y otro.
-
-Sobre `ai4i2020`: los cinco modos de fallo documentados (TWF, HDF, PWF, OSF,
-RNF) suman **373** entre sus 10 000 filas — más que los 339 positivos — porque
-una máquina puede fallar por varios modos a la vez, y porque el dataset
-original tiene una inconsistencia conocida entre el indicador `machine_failure`
-y sus cinco sub-modos. Verificado sobre el CSV real: 348 filas tienen al menos
-un modo marcado (24 de ellas, dos o más a la vez), pero solo 330 de esas 348
-tienen además `machine_failure=1` — las 18 restantes marcan un modo sin que el
-indicador general se active. Las 9 filas que faltan para llegar a 339
-(330 + 9) tienen `machine_failure=1` sin ningún modo marcado: un fallo real,
-sin causa de las cinco documentadas. Ninguna de estas cinco columnas entra
-como feature de modelado (CLAUDE.md §13): son casi deterministas de
-`machine_failure` y usarlas sería fuga del objetivo.
-
-Todos los números de la tabla salen de `reports/comparison.json`, generado por
-`pdm-cli compare` a partir de `reports/metrics_*.json` y
-`reports/calibration_*.json` ya medidos sobre ambos datasets. Ningún número
-está escrito a mano.
-
-| | `lab180` (179 filas válidas) | `ai4i2020` (10 000 filas) |
-|---|---|---|
-| positivos | 10 (5.59 %) | 339 (3.39 %) |
-| **accuracy del clasificador trivial** | **94.41 %** | **96.61 %** |
-| mejor modelo por PR-AUC (informativo) | `logistic_plain` — PR-AUC 0.7153 | `gradient_boosting` — PR-AUC 0.9108 |
-| **modelo de la decisión** (CLAUDE.md §9.2, los dos datasets) | `logistic_plain` + Platt | `logistic_plain` + Platt |
-| umbral óptimo por coste | 0.141 | 0.084 |
-| recall a ESE umbral (aciertos/positivos) | 8/10 | 267/339 |
-| **IC de Wilson del recall, al umbral óptimo** | **[0.490, 0.943] — 45 pp de ancho** | **[0.741, 0.828] — 9 pp de ancho** |
-| ahorro del umbral óptimo sobre t=0.5 | 64.7 % | 40.7 % |
-
-**Las cuatro últimas filas son siempre el mismo modelo, al mismo tipo de
-umbral, en los dos datasets** — la ruta fija del proyecto: sin balanceo →
-calibrar con Platt → optimizar umbral por coste (CLAUDE.md §2.5, §9.2). El
-recall y su IC están medidos **a ese umbral óptimo, nunca a 0.5** — reportarlo
-a 0.5 aquí contradiría la sección anterior, que argumenta que 0.5 no tiene
-ningún significado económico en este problema. La fila "mejor modelo por
-PR-AUC" es aparte y solo informativa: es el modelo que dibuja la figura de más
-abajo, pero no aporta el recall ni el IC de la tabla.
-
-**Coincidencia a anotar, no a esconder:** el IC de `lab180` en esta tabla
-—[0.490, 0.943], de `logistic_plain`+Platt a t=0.141— coincide, número a
-número, con el que reportan CLAUDE.md §8.2 y [`MODEL_CARD.md`](MODEL_CARD.md)
-para `logistic_balanced` a t=0.5. Son la misma cifra por casualidad de conteo
-(8 aciertos sobre 10 positivos en ambos casos), no la misma medición: modelo,
-umbral y protocolo de validación cruzada son distintos. Con solo 10 positivos,
-que dos rutas de decisión razonables lleguen al mismo número de aciertos no es
-sorprendente — es, otra vez, el intervalo de confianza diciendo que hay poca
-información para distinguir entre ellas.
-
-La fila que hay que leer dos veces es la del intervalo de confianza del
-recall: **con 179 filas, un IC de 45 puntos porcentuales significa que
-"recall 0.49" y "recall 0.94" son, con esta muestra, estadísticamente
-indistinguibles — no sirve para decidir nada en producción. Con 10 000 filas,
-el mismo cálculo de Wilson da un intervalo de 9 puntos: sí es accionable.**
-No es que `ai4i2020` tenga "mejores datos" en un sentido abstracto — tiene
-34 veces más positivos, y eso es, literalmente, lo único que estrecha un
-intervalo de Wilson.
-
-La fila de accuracy del dummy es la misma advertencia de siempre, en los dos
-datasets: en `ai4i2020`, no predecir nunca un fallo ya acierta el 96.61 % de
-las veces — un número más alto que en `lab180`, no más bajo, porque la
-prevalencia real (3.39 %) es menor. La accuracy miente más cuanto más
-desbalanceada está la clase, y eso no depende de cuántas filas haya.
-
-![Curvas PR de ambos datasets en el mismo eje](reports/figures/comparacion_pr.png)
-*Esta figura usa el modelo de MEJOR PR-AUC de cada dataset (fila informativa
-de la tabla: `logistic_plain` y `gradient_boosting`), no `logistic_plain`+Platt
-— es una comparación de calidad de ordenación, no de la decisión por coste. La
-curva de `lab180` (naranja) es dentada porque cada uno de sus 10 positivos
-mueve la curva de un salto; la de `ai4i2020` (azul) es suave y se mantiene muy
-por encima de su propia línea de azar en casi todo el rango de
-recall. Ambas son predicciones out-of-fold de un único `StratifiedKFold(5)`,
-calculadas con el mismo código.*
-
-## En construcción
-
-Esto cubre las Fases 1 a 5, Bloque A (andamiaje + EDA + contrato de datos +
-auditor de plausibilidad + modelado con validación honesta + calibración +
-umbral por coste + explicabilidad + límites estadísticos + segundo dataset).
-Ver también [`MODEL_CARD.md`](MODEL_CARD.md) y el anexo académico en
-[`notebooks/00_lab_original.ipynb`](notebooks/00_lab_original.ipynb). Falta el
-empaquetado final del Bloque B: Docker, CI, dashboard, informe HTML y el
-README definitivo (con badges, diagrama del pipeline y enlaces al dashboard
-en vivo). Nada de lo que sigue está escrito todavía a propósito — no hay
-número que reportar sin haberlo medido.
+1. En [share.streamlit.io](https://share.streamlit.io), "New app" →
+   conectar el repositorio `ajmedinaa-gif/predictive-maintenance-pipeline`,
+   rama `main`.
+2. **Main file path:** `app/streamlit_app.py`.
+3. Streamlit Cloud instala desde `requirements.txt` (generado con
+   `uv export --no-dev --no-hashes --format requirements-txt`, ya en la raíz
+   del repo) — no usa `uv` ni `pyproject.toml` directamente.
+4. El dashboard lee `reports/*.json` y `reports/figures/*`: como esos
+   ficheros NO se versionan (se regeneran con el pipeline), hay que
+   generarlos antes de desplegar y comprometerlos en una rama/tag específico
+   para el deploy, o ejecutar el pipeline en un paso previo fuera de
+   Streamlit Cloud (no tiene un paso de build propio). La forma más simple:
+   generar `reports/` en local (`make run`) y hacer commit de ese contenido
+   solo en la rama que apunta el deploy de Streamlit Cloud.
+5. `.streamlit/config.toml` ya fija tema y modo *headless*; no requiere
+   configuración adicional en la plataforma.
 
 ## Desarrollo
 
@@ -596,15 +377,29 @@ número que reportar sin haberlo medido.
 uv sync
 make lint
 make test
-make eda
-make validate
-make train
-make calibrate
-make explain
-make limits
+make run          # pipeline completo (lab180 + ai4i2020, descarga incluida)
+make dashboard    # http://localhost:8501
 ```
 
-Ver `CLAUDE.md` para las reglas del proyecto.
+Ver [`CONTRIBUTING.md`](CONTRIBUTING.md) para cómo se construyó el repo fase
+por fase y las reglas duras del proyecto; [`CLAUDE.md`](CLAUDE.md) es la
+fuente de verdad completa.
+
+## Referencias
+
+- Vabalas, A. et al. (2019). *Machine learning algorithm validation with a
+  limited sample size.* PLOS ONE 14(11): e0224365.
+- Saito, T., Rehmsmeier, M. (2015). *The Precision-Recall Plot Is More
+  Informative than the ROC Plot When Evaluating Binary Classifiers on
+  Imbalanced Datasets.* PLOS ONE 10(3): e0118432.
+- Varoquaux, G. (2018). *Cross-validation failure: small sample sizes lead to
+  large error bars.* NeuroImage 180: 68-77.
+- Matzka, S. (2020). *Explainable Artificial Intelligence for Predictive
+  Maintenance Applications.* IEEE CSCI — dataset AI4I 2020 (UCI id=601).
+
+## Autor
+
+[@ajmedinaa-gif](https://github.com/ajmedinaa-gif)
 
 ## Licencia
 
