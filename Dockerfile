@@ -28,8 +28,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 COPY src ./src
 COPY config ./config
+# --no-editable: sin esto, `uv sync` instala el paquete en modo editable --
+# el venv termina con un simple .pth apuntando a /build/src, que en el stage
+# runtime no existe (el código vive en /app/src). Con --no-editable el
+# paquete se instala de verdad dentro de site-packages y /opt/venv queda
+# autocontenido: el runtime no necesita copiar src/ en absoluto.
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+    uv sync --frozen --no-dev --no-editable
 
 
 FROM python:3.11-slim AS runtime
@@ -51,7 +56,6 @@ ENV VIRTUAL_ENV=/opt/venv \
 WORKDIR /app
 
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /build/src ./src
 COPY --from=builder /build/config ./config
 COPY app ./app
 # `lab180` viene versionado en el repo (dataset simulado pequeño, CLAUDE.md

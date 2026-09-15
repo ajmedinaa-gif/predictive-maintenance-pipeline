@@ -20,10 +20,10 @@ jobs:
       matrix:
         python-version: ["3.11", "3.12"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instalar uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
@@ -45,7 +45,7 @@ jobs:
 
       - name: Subir cobertura como artefacto
         if: matrix.python-version == '3.11'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-xml
           path: coverage.xml
@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Construir la imagen
         run: docker build -t predictive-maintenance-pipeline:ci .
@@ -73,15 +73,36 @@ jobs:
       - name: Verificar que el contenedor arranca (pdm-cli version)
         run: docker run --rm predictive-maintenance-pipeline:ci version
 
+      # `version` pasa aunque el pipeline esté roto por dentro (import
+      # fallido, plantilla no empaquetada, etc.) -- esta prueba corre el
+      # pipeline de verdad, contra un volumen efímero, y comprueba que
+      # produce un reports/metrics_lab180.json con las claves esperadas.
+      - name: Verificar que el pipeline corre de verdad dentro del contenedor
+        run: |
+          # chmod 777: el contenedor escribe como `appuser` (uid 1000), que
+          # no coincide con el uid del runner de GitHub Actions -- sin esto,
+          # el volumen montado del host rechaza la escritura por permisos.
+          mkdir -p ci-reports && chmod 777 ci-reports
+          docker run --rm -v "$PWD/ci-reports:/app/reports" \
+            predictive-maintenance-pipeline:ci run --dataset lab180
+          test -s ci-reports/metrics_lab180.json
+          python3 -c "
+          import json
+          with open('ci-reports/metrics_lab180.json') as fh:
+              informe = json.load(fh)
+          assert list(informe['modelos'])[0] == 'dummy_most_frequent'
+          print('reports/metrics_lab180.json dentro del contenedor: OK')
+          "
+
   pipeline:
     name: pipeline completo sobre lab180
     runs-on: ubuntu-latest
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instalar uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
@@ -131,10 +152,10 @@ jobs:
     if: github.event_name == 'workflow_dispatch'
     needs: test
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Instalar uv
-        uses: astral-sh/setup-uv@v3
+        uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: true
           cache-dependency-glob: "uv.lock"
