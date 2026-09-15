@@ -1,0 +1,51 @@
+# Dos servicios, la misma imagen (CLAUDE.md §14.7): `pipeline` ejecuta el
+# pipeline completo sobre lab180 y ai4i2020 y escribe en reports/ (montado
+# como volumen, para que las salidas queden en el host); `dashboard` sirve
+# Streamlit en :8501 leyendo esos mismos reports/*.json, sin reentrenar nada.
+#
+# Sin claves `platform`: la máquina de desarrollo y los runners de CI son
+# ambos x86_64 (CLAUDE.md §14.7) -- añadir `linux/amd64` aquí sobraría.
+#
+# Quickstart: `docker compose up pipeline` genera los informes;
+# `docker compose up dashboard` levanta el tablero en http://localhost:8501.
+
+services:
+  pipeline:
+    build: .
+    image: predictive-maintenance-pipeline:latest
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        pdm-cli eda --dataset lab180
+        pdm-cli run --dataset lab180
+        pdm-cli calibrate --dataset lab180
+        pdm-cli explain --dataset lab180
+        pdm-cli limits --dataset lab180
+        pdm-cli download --dataset ai4i2020
+        pdm-cli eda --dataset ai4i2020
+        pdm-cli run --dataset ai4i2020
+        pdm-cli calibrate --dataset ai4i2020
+        pdm-cli explain --dataset ai4i2020
+        pdm-cli limits --dataset ai4i2020
+        pdm-cli compare
+        pdm-cli report --dataset lab180
+        pdm-cli report --dataset ai4i2020
+    volumes:
+      - ./reports:/app/reports
+      - ./data:/app/data
+
+  dashboard:
+    build: .
+    image: predictive-maintenance-pipeline:latest
+    entrypoint: ["/opt/venv/bin/streamlit"]
+    command:
+      - run
+      - app/streamlit_app.py
+      - --server.address=0.0.0.0
+      - --server.port=8501
+      - --server.headless=true
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./reports:/app/reports:ro

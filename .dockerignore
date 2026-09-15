@@ -1,0 +1,45 @@
+# Todo lo que no hace falta dentro de la imagen (CLAUDE.md §14.7: la imagen
+# la construye y mide CI, no esta máquina -- agresivo a propósito).
+
+.git/
+.github/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+
+.pytest_cache/
+.ruff_cache/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+
+# Datos derivados y salidas del pipeline: se regeneran dentro del contenedor,
+# o llegan por volumen (docker-compose.yml). ai4i2020 ni siquiera se
+# versiona (descarga explícita, CLAUDE.md §2.11).
+data/interim/
+data/quarantine/
+data/raw/ai4i2020/
+reports/*
+!reports/.gitkeep
+
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+__MACOSX
+
+.idea/
+.vscode/
+
+notebooks/
+.claude/
+tools/
+CONTRIBUTING.md
+CLAUDE.md
+FASES.md
+MODEL_CARD.md
