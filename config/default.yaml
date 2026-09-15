@@ -12,12 +12,18 @@ paths:
   figures: reports/figures
 
 datasets:
+  # Solo la ruta del CSV crudo vive aquí. El objetivo, la clase positiva, si es
+  # simulado y las columnas de features son propiedad de cada `DatasetAdapter`
+  # (`datasets.py`, CLAUDE.md §13): una sola fuente de verdad, no dos que
+  # puedan divergir.
   lab180:
-    # Datos SIMULADOS de laboratorio. Ver CLAUDE.md §7.
+    # Datos SIMULADOS de laboratorio, versionados en el repo. Ver CLAUDE.md §7.
     file: lab180/Lab1_engineering_failures.csv
-    target: failure
-    positive_label: "yes"
-    simulated: true
+  ai4i2020:
+    # UCI id=601 (Matzka, 2020). Descarga explícita y separada, nunca un
+    # efecto lateral del pipeline (CLAUDE.md §2.11): `pdm-cli download
+    # --dataset ai4i2020`.
+    file: ai4i2020/ai4i2020.csv
 
 # Esquema de validación cruzada por dataset (CLAUDE.md §8). lab180 usa
 # repeticiones porque con 10 positivos un único reparto en folds es ruido; a

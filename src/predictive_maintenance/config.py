@@ -54,12 +54,15 @@ class PathsSettings(BaseModel):
 
 
 class DatasetEntry(BaseModel):
-    """Metadatos de un dataset registrado en `datasets:` del YAML."""
+    """Metadatos de un dataset registrado en `datasets:` del YAML.
+
+    Deliberadamente solo la ruta del fichero: el objetivo, la clase positiva,
+    si es simulado y las columnas de features viven en el `DatasetAdapter`
+    correspondiente (`datasets.py`, CLAUDE.md §13) para no tener dos fuentes
+    de verdad que puedan divergir.
+    """
 
     file: str
-    target: str
-    positive_label: str
-    simulated: bool = False
 
 
 class CrossValidationScheme(BaseModel):

@@ -23,7 +23,12 @@ venv/
 .env
 
 # ---- Datos derivados ----
-# data/raw/ SÍ se versiona: es la entrada del pipeline.
+# data/raw/lab180/ SÍ se versiona: es un CSV pequeño y simulado, la entrada
+# fija del pipeline (CLAUDE.md §7). data/raw/ai4i2020/ NO: es un dataset
+# externo de ~10 000 filas que se descarga con un paso explícito y separado
+# (`pdm-cli download --dataset ai4i2020`, CLAUDE.md §2.11) -- nunca un efecto
+# lateral, y tampoco algo que este repositorio deba redistribuir.
+data/raw/ai4i2020/
 data/interim/*
 !data/interim/.gitkeep
 data/quarantine/*

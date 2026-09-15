@@ -2,7 +2,9 @@
 
 import copy
 import json
+from pathlib import Path
 
+import pandas as pd
 import pytest
 from typer.testing import CliRunner
 
@@ -220,5 +222,152 @@ def test_limits_command_writes_report_and_figure(tmp_path, monkeypatch):
     assert informe["presupuesto_estadistico"]["margen_0.05"]["fallos_necesarios"] == 246
 
     ruta_figura = tmp_path / "reports" / "figures" / "lab180" / "learning_curve.png"
+    assert ruta_figura.exists()
+    assert ruta_figura.stat().st_size > 0
+
+
+# --------------------------------------------------------------------------- #
+# Fase 5: download / run / compare
+# --------------------------------------------------------------------------- #
+
+
+def test_download_command_calls_adapter_download_lab180(monkeypatch):
+    """`lab180` no toca la red: solo verifica que el fichero exista."""
+    llamadas = []
+    monkeypatch.setattr(
+        datasets.Lab180Adapter, "download", lambda self: llamadas.append(1) or Path("x")
+    )
+    result = runner.invoke(app, ["download", "--dataset", "lab180"])
+    assert result.exit_code == 0, result.output
+    assert llamadas == [1]
+
+
+def test_download_command_never_touches_network_for_ai4i2020(monkeypatch):
+    """CLAUDE.md §2.11: la descarga es un paso explícito -- aquí se mockea para
+    que el test no dependa de la red, no para probar que la red funciona."""
+    llamadas = []
+
+    def _fake_download(self):
+        llamadas.append(1)
+        return Path("data/raw/ai4i2020/ai4i2020.csv")
+
+    monkeypatch.setattr(datasets.AI4I2020Adapter, "download", _fake_download)
+    result = runner.invoke(app, ["download", "--dataset", "ai4i2020"])
+    assert result.exit_code == 0, result.output
+    assert llamadas == [1]
+    assert "ai4i2020" in result.output
+
+
+def test_download_command_unknown_dataset_fails():
+    result = runner.invoke(app, ["download", "--dataset", "no_existe"])
+    assert result.exit_code != 0
+
+
+def test_run_command_validates_and_trains_lab180(tmp_path, monkeypatch):
+    """`run` nunca sale con código 1 por cuarentena -- a diferencia de `validate`
+    solo -- porque `lab180` cuarentena la fila 82 en cada ejecución por diseño."""
+    config_prueba = _config_de_prueba(tmp_path)
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    settings_prueba = get_settings().model_copy(deep=True)
+    settings_prueba.paths.data_quarantine = tmp_path / "quarantine"
+    settings_prueba.cross_validation["lab180"] = settings_prueba.cross_validation[
+        "lab180"
+    ].model_copy(update={"n_splits": 2, "n_repeats": 1})
+    monkeypatch.setattr(data, "get_settings", lambda: settings_prueba)
+    monkeypatch.setattr(cli, "get_settings", lambda: settings_prueba)
+
+    result = runner.invoke(app, ["run", "--dataset", "lab180"])
+    assert result.exit_code == 0, result.output
+    assert "probablemente sintético" in result.output
+    assert "dummy_most_frequent" in result.output
+
+    assert (tmp_path / "reports" / "validation_lab180.json").exists()
+    assert (tmp_path / "reports" / "plausibility_lab180.json").exists()
+    assert (tmp_path / "reports" / "metrics_lab180.json").exists()
+    assert (tmp_path / "reports" / "results_lab180.md").exists()
+
+
+def _informe_metricas_sintetico(n_positivos: int, n_filas: int) -> dict:
+    """El "mejor modelo" es a propósito `dummy_most_frequent`: el test no
+    necesita un modelo real, solo que `compare` sepa recalcular su curva
+    out-of-fold -- `DummyClassifier` es el ajuste más rápido posible."""
+    return {
+        "dataset": "x",
+        "n_filas_entrenamiento": n_filas,
+        "n_positivos": n_positivos,
+        "modelos": {
+            "logistic_plain": {
+                "metricas": {
+                    "average_precision": {"media": 0.05},
+                    "accuracy": {"media": 1 - n_positivos / n_filas},
+                },
+                "matriz_confusion": {"tp": 0, "recall_wilson_ci": [0.0, 0.3]},
+            },
+            "dummy_most_frequent": {
+                "metricas": {
+                    "average_precision": {"media": 0.9},
+                    "accuracy": {"media": 0.95},
+                },
+                "matriz_confusion": {"tp": n_positivos, "recall_wilson_ci": [0.5, 0.95]},
+            },
+        },
+    }
+
+
+def _informe_calibracion_sintetico() -> dict:
+    return {
+        "variantes": {
+            "logistic_plain_platt": {"umbral_empirico": 0.1, "ahorro_pct": 50.0},
+        }
+    }
+
+
+def test_compare_command_requires_existing_reports(tmp_path, monkeypatch):
+    config_prueba = _config_de_prueba(tmp_path)
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    result = runner.invoke(app, ["compare"])
+    assert result.exit_code == 2, result.output
+    assert "lab180" in result.output
+
+
+def test_compare_command_writes_comparison_report_and_figure(tmp_path, monkeypatch):
+    config_prueba = _config_de_prueba(tmp_path)
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    reports_dir = tmp_path / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
+    for nombre, n_pos, n_filas in (("lab180", 10, 179), ("ai4i2020", 339, 10000)):
+        (reports_dir / f"metrics_{nombre}.json").write_text(
+            json.dumps(_informe_metricas_sintetico(n_pos, n_filas)),
+            encoding="utf-8",
+        )
+        (reports_dir / f"calibration_{nombre}.json").write_text(
+            json.dumps(_informe_calibracion_sintetico()), encoding="utf-8"
+        )
+
+    # `compare` recalcula las curvas out-of-fold del "mejor modelo" sobre datos
+    # reales: se fuerza a `dummy_most_frequent` (rápido, sin ajuste real) para
+    # que el test no dependa de descargar `ai4i2020`.
+    def _xy_sintetico(dataset):
+        spec = datasets.get_spec(dataset)
+        n = 60
+        X = pd.DataFrame({col: range(n) for col in spec.feature_columns})
+        y = pd.Series(["no"] * (n - 6) + ["yes"] * 6)
+        return spec, None, X, y
+
+    monkeypatch.setattr(cli, "_cargar_xy_validado", _xy_sintetico)
+
+    result = runner.invoke(app, ["compare"])
+    assert result.exit_code == 0, result.output
+
+    ruta_json = reports_dir / "comparison.json"
+    assert ruta_json.exists()
+    informe = json.loads(ruta_json.read_text(encoding="utf-8"))
+    assert informe["datasets"]["lab180"]["mejor_modelo"] == "dummy_most_frequent"
+    assert informe["datasets"]["ai4i2020"]["n_positivos"] == 339
+
+    ruta_figura = tmp_path / "reports" / "figures" / "comparacion_pr.png"
     assert ruta_figura.exists()
     assert ruta_figura.stat().st_size > 0

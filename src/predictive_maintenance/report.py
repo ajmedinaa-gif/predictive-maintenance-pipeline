@@ -272,18 +272,28 @@ def build_limits_report(
     n_filas: int,
     n_positivos: int,
     prevalencia: float,
-    recall_wilson_ci_8_10: tuple,
+    recall_wilson_ci_ilustrativo: tuple,
+    recall_wilson_ci_ilustrativo_aciertos: int,
     presupuesto: dict,
     learning_curve: pd.DataFrame,
 ) -> dict:
-    """Payload de la Fase 4 C: presupuesto estadístico (CLAUDE.md §10.3) y curva de aprendizaje."""
+    """Payload de la Fase 4 C: presupuesto estadístico (CLAUDE.md §10.3) y curva de aprendizaje.
+
+    `recall_wilson_ci_ilustrativo` es el IC de Wilson para un recall del 80 %
+    ilustrativo, anclado a `n_positivos` REALES del dataset (no un ejemplo fijo
+    de "8/10"): con `lab180` (10 positivos) reproduce el IC exacto de CLAUDE.md
+    §10.3; con `ai4i2020` (339 positivos) muestra cuánto se estrecha con más
+    datos (CLAUDE.md §13, Fase 5).
+    """
     return _jsonable(
         {
             "dataset": dataset,
             "n_filas": n_filas,
             "n_positivos": n_positivos,
             "prevalencia": prevalencia,
-            "recall_wilson_ci_8_de_10": list(recall_wilson_ci_8_10),
+            "recall_wilson_ci_ilustrativo": list(recall_wilson_ci_ilustrativo),
+            "recall_wilson_ci_ilustrativo_aciertos": recall_wilson_ci_ilustrativo_aciertos,
+            "recall_wilson_ci_ilustrativo_n": n_positivos,
             "presupuesto_estadistico": presupuesto,
             "curva_aprendizaje_pr_auc": learning_curve,
         }
@@ -292,4 +302,23 @@ def build_limits_report(
 
 def write_limits_report(report: dict, path: Path) -> Path:
     """Vuelca el informe de límites estadísticos a JSON."""
+    return write_json_report(report, path)
+
+
+def build_comparison_report(*, datasets_info: dict[str, dict]) -> dict:
+    """Payload de la Fase 5, Bloque A: la tabla "un pipeline, dos datasets" (CLAUDE.md §13).
+
+    `datasets_info[nombre]` trae, por dataset: `n_filas`, `n_positivos`,
+    `prevalencia`, `dummy_accuracy`, `mejor_modelo`, `mejor_pr_auc`,
+    `mejor_modelo_recall_wilson_ci` (del modelo de mejor PR-AUC medio),
+    `umbral_optimo_platt` y `ahorro_pct_platt` (de `logistic_plain` + Platt,
+    la decisión fija del proyecto en ambos datasets, CLAUDE.md §9.2). Todo
+    leído de `reports/metrics_*.json` y `reports/calibration_*.json` ya
+    generados -- ningún número se escribe a mano aquí.
+    """
+    return _jsonable({"datasets": datasets_info})
+
+
+def write_comparison_report(report: dict, path: Path) -> Path:
+    """Vuelca la comparación entre datasets a JSON."""
     return write_json_report(report, path)

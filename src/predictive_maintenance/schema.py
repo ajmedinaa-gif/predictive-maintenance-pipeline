@@ -54,8 +54,46 @@ class Lab180Schema(pa.DataFrameModel):
         coerce = False
 
 
-SCHEMAS: dict[str, type[pa.DataFrameModel]] = {"lab180": Lab180Schema}
-"""Registro dataset -> contrato. `ai4i2020` se añade en la Fase 5 (CLAUDE.md §13)."""
+# Rangos físicos de `ai4i2020` (CLAUDE.md §13, Fase 5): temperaturas en
+# Kelvin, rango plausible para un taller industrial (280-320 K, es decir
+# 6.85-46.85 °C). El resto de sensores no puede ser negativo; no hay un
+# máximo físico conocido más allá del que ya impone la resolución del sensor,
+# así que se deja sin límite superior.
+_AI4I_TEMP_MIN, _AI4I_TEMP_MAX = 280.0, 320.0
+
+
+class AI4I2020Schema(pa.DataFrameModel):
+    """Contrato físico de `ai4i2020` (UCI id=601, Matzka 2020). `strict=True`.
+
+    Incluye las cinco columnas de modo de fallo (`twf`...`rnf`): son parte del
+    dataset crudo y se validan igual que el resto, pero NUNCA entran como
+    feature de modelado (`AI4I2020Adapter.feature_columns` no las incluye,
+    CLAUDE.md §13) porque son sub-indicadores casi deterministas de
+    `machine_failure` — incluirlas sería fuga del objetivo.
+    """
+
+    # `rotational_speed_rpm` y `tool_wear_min` llegan como enteros del CSV de
+    # origen (UCI): rpm y minutos enteros, no una medición fraccionaria.
+    type: str = pa.Field(isin=["L", "M", "H"])
+    air_temperature_k: float = pa.Field(ge=_AI4I_TEMP_MIN, le=_AI4I_TEMP_MAX)
+    process_temperature_k: float = pa.Field(ge=_AI4I_TEMP_MIN, le=_AI4I_TEMP_MAX)
+    rotational_speed_rpm: int = pa.Field(gt=0)
+    torque_nm: float = pa.Field(ge=0.0)
+    tool_wear_min: int = pa.Field(ge=0)
+    machine_failure: int = pa.Field(isin=[0, 1])
+    twf: int = pa.Field(isin=[0, 1])
+    hdf: int = pa.Field(isin=[0, 1])
+    pwf: int = pa.Field(isin=[0, 1])
+    osf: int = pa.Field(isin=[0, 1])
+    rnf: int = pa.Field(isin=[0, 1])
+
+    class Config:
+        strict = True
+        coerce = False
+
+
+SCHEMAS: dict[str, type[pa.DataFrameModel]] = {"lab180": Lab180Schema, "ai4i2020": AI4I2020Schema}
+"""Registro dataset -> contrato. Espejo de `datasets.ADAPTERS[name].schema`."""
 
 
 def quality_warnings(

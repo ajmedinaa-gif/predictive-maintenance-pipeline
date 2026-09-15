@@ -1,12 +1,14 @@
 """Interfaz de línea de comandos del proyecto.
 
 Regla dura (CLAUDE.md §2.11): las descargas externas son un paso explícito del
-CLI, nunca un efecto lateral de importar un módulo. Ningún comando de esta
-Fase 1 toca la red.
+CLI (`download`), nunca un efecto lateral de importar un módulo o de correr
+otro comando. El resto de comandos son deliberadamente los mismos para
+cualquier dataset registrado en `datasets.ADAPTERS` (CLAUDE.md §13.1).
 """
 
 from __future__ import annotations
 
+import json
 import logging
 
 import typer
@@ -26,7 +28,6 @@ from predictive_maintenance import (
     report,
     threshold,
 )
-from predictive_maintenance import schema as schema_module
 from predictive_maintenance.config import get_costs, get_settings
 
 app = typer.Typer(
@@ -53,6 +54,23 @@ def _mostrar_ruta(ruta) -> str:
 def version() -> None:
     """Muestra la versión instalada del paquete."""
     typer.echo(f"predictive-maintenance-pipeline {__version__}")
+
+
+@app.command(name="download")
+def download_command(
+    dataset: str = typer.Option(..., "--dataset", help="Dataset a descargar (ej. ai4i2020)."),
+) -> None:
+    """Descarga explícita de un dataset externo (CLAUDE.md §2.11).
+
+    Nunca ocurre como efecto lateral de otro comando: ningún módulo del
+    pipeline llama a esto por su cuenta. `lab180` no necesita red -- viene
+    versionado en el repo -- pero el comando también acepta ese nombre y solo
+    verifica que el fichero exista.
+    """
+    _configurar_logging()
+    adapter = datasets.get_adapter(dataset)
+    ruta = adapter.download()
+    typer.echo(f"Dataset {dataset!r} listo en: {_mostrar_ruta(ruta)}")
 
 
 @app.command(name="eda")
@@ -109,25 +127,16 @@ def _configurar_logging() -> None:
         )
 
 
-@app.command(name="validate")
-def validate_command(
-    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a validar."),
-) -> None:
-    """Valida `dataset` contra su contrato y audita su plausibilidad física.
+def _validar_y_auditar(dataset: str) -> dict:
+    """Cuerpo compartido de `validate` y `run`: contrato de datos + plausibilidad.
 
-    Sale con código 1 si alguna fila terminó en cuarentena, para que un CI
-    pueda usarlo como puerta de calidad (CLAUDE.md §2.9).
+    Imprime y vuelca los dos informes a `reports/`; devuelve el resumen de
+    validación para que quien llame decida qué hacer con el código de salida.
     """
-    _configurar_logging()
-
     spec = datasets.get_spec(dataset)
-    if dataset not in schema_module.SCHEMAS:
-        disponibles = ", ".join(sorted(schema_module.SCHEMAS))
-        typer.echo(f"No hay contrato registrado para {dataset!r}. Disponibles: {disponibles}")
-        raise typer.Exit(code=2)
-    esquema = schema_module.SCHEMAS[dataset]
+    adapter = datasets.get_adapter(dataset)
 
-    resultado = data.load_validated(spec.path, esquema, dataset_name=dataset)
+    resultado = data.load_validated(spec.path, adapter.schema, dataset_name=dataset)
 
     typer.echo(f"\n=== Contrato de datos: {dataset} ({spec.path.name}) ===\n")
     typer.echo(
@@ -167,34 +176,34 @@ def validate_command(
         typer.echo(f"  - {evidencia}")
     typer.echo(f"Informe de plausibilidad: {_mostrar_ruta(ruta_plausibilidad)}")
 
-    if resultado.report["n_cuarentena"]:
+    return resultado.report
+
+
+@app.command(name="validate")
+def validate_command(
+    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a validar."),
+) -> None:
+    """Valida `dataset` contra su contrato y audita su plausibilidad física.
+
+    Sale con código 1 si alguna fila terminó en cuarentena, para que un CI
+    pueda usarlo como puerta de calidad (CLAUDE.md §2.9).
+    """
+    _configurar_logging()
+    resumen = _validar_y_auditar(dataset)
+    if resumen["n_cuarentena"]:
         raise typer.Exit(code=1)
 
 
-@app.command(name="train")
-def train_command(
-    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a entrenar."),
-) -> None:
-    """Compara el zoo de modelos de `pipeline.py` con el protocolo de CLAUDE.md §8.
+def _entrenar_y_reportar(dataset: str) -> None:
+    """Cuerpo compartido de `train` y `run`: compara el zoo de modelos (CLAUDE.md §8).
 
-    Solo entrena sobre las filas que pasan el contrato de datos (CLAUDE.md
-    §2.9): la fila en cuarentena de `lab180` nunca entra al split de CV.
+    Solo entrena sobre las filas que pasan el contrato de datos y con las
+    features ya derivadas por el `DatasetAdapter` (CLAUDE.md §2.9, §13): la
+    fila en cuarentena de `lab180` nunca entra al split de CV, y `ai4i2020`
+    entra con `power_w`/`temp_delta_k`/`wear_x_torque`/`type_*` ya calculados.
     """
-    _configurar_logging()
-
     settings = get_settings()
-    spec = datasets.get_spec(dataset)
-    if dataset not in schema_module.SCHEMAS:
-        disponibles = ", ".join(sorted(schema_module.SCHEMAS))
-        typer.echo(f"No hay contrato registrado para {dataset!r}. Disponibles: {disponibles}")
-        raise typer.Exit(code=2)
-
-    resultado_validacion = data.load_validated(
-        spec.path, schema_module.SCHEMAS[dataset], dataset_name=dataset
-    )
-    df = resultado_validacion.valid
-    X = df.drop(columns=[spec.target])
-    y = df[spec.target].astype(str)
+    spec, df, X, y = _cargar_xy_validado(dataset)
     n_positivos = int((y == spec.positive_label).sum())
 
     cfg = evaluate.EvalConfig.for_dataset(dataset, settings)
@@ -273,15 +282,47 @@ def train_command(
     typer.echo(f"Figura: {_mostrar_ruta(ruta_figura)}")
 
 
+@app.command(name="train")
+def train_command(
+    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a entrenar."),
+) -> None:
+    """Compara el zoo de modelos de `pipeline.py` con el protocolo de CLAUDE.md §8."""
+    _configurar_logging()
+    _entrenar_y_reportar(dataset)
+
+
+@app.command(name="run")
+def run_command(
+    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a ejecutar."),
+) -> None:
+    """Pipeline completo sobre `dataset`: contrato de datos + comparación de modelos.
+
+    Es la prueba de que el código es una abstracción y no un script atado a
+    un CSV (CLAUDE.md §13.1): el mismo comando, cambiando solo `--dataset`,
+    corre sobre `lab180` (5 x 10 repeticiones, 10 positivos) y sobre
+    `ai4i2020` (5 folds sin repetir, ~339 positivos). A diferencia de
+    `validate`, `run` nunca sale con código 1 por cuarentena -- reporta el
+    conteo y sigue al entrenamiento -- porque `lab180` cuarentena la fila 82
+    por diseño en cada ejecución.
+    """
+    _configurar_logging()
+    typer.echo(f"\n########## pdm-cli run --dataset {dataset} ##########")
+    _validar_y_auditar(dataset)
+    _entrenar_y_reportar(dataset)
+
+
 def _cargar_xy_validado(dataset: str) -> tuple:
+    """Contrato de datos + ingeniería de features del `DatasetAdapter` (CLAUDE.md §13).
+
+    Devuelve `(spec, df, X, y)` con `X` ya restringido y ordenado según
+    `spec.feature_columns` -- nunca incluye el objetivo ni, para `ai4i2020`,
+    los cinco modos de fallo (fuga de objetivo).
+    """
     spec = datasets.get_spec(dataset)
-    if dataset not in schema_module.SCHEMAS:
-        disponibles = ", ".join(sorted(schema_module.SCHEMAS))
-        typer.echo(f"No hay contrato registrado para {dataset!r}. Disponibles: {disponibles}")
-        raise typer.Exit(code=2)
-    resultado = data.load_validated(spec.path, schema_module.SCHEMAS[dataset], dataset_name=dataset)
-    df = resultado.valid
-    X = df.drop(columns=[spec.target])
+    adapter = datasets.get_adapter(dataset)
+    resultado = data.load_validated(spec.path, adapter.schema, dataset_name=dataset)
+    df = adapter.engineer_features(resultado.valid)
+    X = df[list(spec.feature_columns)]
     y = df[spec.target].astype(str)
     return spec, df, X, y
 
@@ -458,8 +499,16 @@ def limits_command(
         f"\n=== Límites estadísticos de {dataset}: {len(df)} filas, {n_positivos} positivos ===\n"
     )
 
-    ic_8_10 = evaluate.recall_wilson_ci(8, 10)
-    typer.echo(f"IC de Wilson del recall (8/10 aciertos): [{ic_8_10[0]:.3f}, {ic_8_10[1]:.3f}]")
+    # Ilustración del IC de Wilson anclada a la escala REAL de `dataset`, no a
+    # un ejemplo fijo: con `lab180` (10 positivos) esto reproduce exactamente
+    # el "8/10" de CLAUDE.md §10.3; con `ai4i2020` (339 positivos) ilustra en
+    # cambio cuánto se estrecha el IC al tener más de 30 veces más positivos.
+    aciertos_ilustrativos = round(0.8 * n_positivos)
+    ic_ilustrativo = evaluate.recall_wilson_ci(aciertos_ilustrativos, n_positivos)
+    typer.echo(
+        f"IC de Wilson del recall ({aciertos_ilustrativos}/{n_positivos} aciertos, "
+        f"80% ilustrativo): [{ic_ilustrativo[0]:.3f}, {ic_ilustrativo[1]:.3f}]"
+    )
 
     presupuesto = {}
     for margen in (0.10, 0.05):
@@ -491,13 +540,96 @@ def limits_command(
         n_filas=len(df),
         n_positivos=n_positivos,
         prevalencia=prevalencia,
-        recall_wilson_ci_8_10=ic_8_10,
+        recall_wilson_ci_ilustrativo=ic_ilustrativo,
+        recall_wilson_ci_ilustrativo_aciertos=aciertos_ilustrativos,
         presupuesto=presupuesto,
         learning_curve=curva_aprendizaje,
     )
     ruta_json = report.write_limits_report(informe, reports_dir / f"limits_{dataset}.json")
     ruta_figura = figures.figure_learning_curve(
         curva_aprendizaje, spec, figures_dir / "learning_curve.png"
+    )
+
+    typer.echo(f"\nInforme JSON: {_mostrar_ruta(ruta_json)}")
+    typer.echo(f"Figura: {_mostrar_ruta(ruta_figura)}")
+
+
+@app.command(name="compare")
+def compare_command() -> None:
+    """Tabla y figura comparativas de "un pipeline, dos datasets" (CLAUDE.md §13).
+
+    Requiere que `train`, `calibrate` y `limits` ya se hayan ejecutado sobre
+    `lab180` y `ai4i2020` -- lee sus `reports/*.json`, nunca reentrana nada.
+    Escribe `reports/comparison.json` y
+    `reports/figures/comparacion_pr.png`.
+    """
+    _configurar_logging()
+    config_yaml = datasets.load_config()
+    reports_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["reports"]
+    figures_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["figures"]
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
+    datasets_info: dict[str, dict] = {}
+    curvas: dict[str, tuple] = {}
+    prevalencias: dict[str, float] = {}
+    etiquetas_modelo: dict[str, str] = {}
+
+    for nombre_dataset in ("lab180", "ai4i2020"):
+        metrics_path = reports_dir / f"metrics_{nombre_dataset}.json"
+        calibration_path = reports_dir / f"calibration_{nombre_dataset}.json"
+        if not metrics_path.exists() or not calibration_path.exists():
+            typer.echo(
+                f"Faltan informes de {nombre_dataset!r}: ejecuta antes "
+                f"`pdm-cli run --dataset {nombre_dataset}` y "
+                f"`pdm-cli calibrate --dataset {nombre_dataset}`."
+            )
+            raise typer.Exit(code=2)
+
+        metricas = json.loads(metrics_path.read_text(encoding="utf-8"))
+        calibracion = json.loads(calibration_path.read_text(encoding="utf-8"))
+
+        modelos = metricas["modelos"]
+        mejor_nombre = max(
+            modelos, key=lambda nombre: modelos[nombre]["metricas"]["average_precision"]["media"]
+        )
+        mejor = modelos[mejor_nombre]
+        n_positivos = metricas["n_positivos"]
+        n_filas = metricas["n_filas_entrenamiento"]
+        platt = calibracion["variantes"]["logistic_plain_platt"]
+
+        datasets_info[nombre_dataset] = {
+            "n_filas": n_filas,
+            "n_positivos": n_positivos,
+            "prevalencia": n_positivos / n_filas,
+            "dummy_accuracy": modelos["dummy_most_frequent"]["metricas"]["accuracy"]["media"],
+            "mejor_modelo": mejor_nombre,
+            "mejor_pr_auc": mejor["metricas"]["average_precision"]["media"],
+            "mejor_modelo_recall_wilson_ci": mejor["matriz_confusion"]["recall_wilson_ci"],
+            "mejor_modelo_tp": mejor["matriz_confusion"]["tp"],
+            "umbral_optimo_platt": platt["umbral_empirico"],
+            "ahorro_pct_platt": platt["ahorro_pct"],
+        }
+
+        spec, _df, X, y = _cargar_xy_validado(nombre_dataset)
+        cfg = evaluate.EvalConfig.for_dataset(nombre_dataset, get_settings())
+        pipe = pipeline.build_pipeline(mejor_nombre, seed=cfg.seed)
+        y_true_bin, y_score, _ = evaluate.out_of_fold_predictions(
+            pipe, X, y, seed=cfg.seed, n_splits=5, positive_label=spec.positive_label
+        )
+        curvas[nombre_dataset] = (y_true_bin, y_score)
+        prevalencias[nombre_dataset] = n_positivos / n_filas
+        etiquetas_modelo[nombre_dataset] = mejor_nombre
+
+        typer.echo(
+            f"{nombre_dataset}: mejor modelo {mejor_nombre} "
+            f"(PR-AUC {datasets_info[nombre_dataset]['mejor_pr_auc']:.4f})"
+        )
+
+    informe = report.build_comparison_report(datasets_info=datasets_info)
+    ruta_json = report.write_comparison_report(informe, reports_dir / "comparison.json")
+
+    ruta_figura = figures.figure_pr_curves_two_datasets(
+        curvas, prevalencias, etiquetas_modelo, figures_dir / "comparacion_pr.png"
     )
 
     typer.echo(f"\nInforme JSON: {_mostrar_ruta(ruta_json)}")

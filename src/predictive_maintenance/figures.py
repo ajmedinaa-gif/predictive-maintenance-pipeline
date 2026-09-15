@@ -36,6 +36,15 @@ _ETIQUETA_ATRIBUTO = {
     "pressure_bar": "Presión (bar)",
     "hours_since_maintenance": "Horas desde mantenimiento",
     "load_percent": "Carga (% de la nominal)",
+    "air_temperature_k": "Temperatura ambiente (K)",
+    "process_temperature_k": "Temperatura de proceso (K)",
+    "rotational_speed_rpm": "Velocidad de rotación (rpm)",
+    "torque_nm": "Par (Nm)",
+    "tool_wear_min": "Desgaste de herramienta (min)",
+    "power_w": "Potencia mecánica (W)",
+    "temp_delta_k": "Delta de temperatura (K)",
+    "wear_x_torque": "Desgaste x par",
+    "machine_failure": "fallo de máquina",
 }
 
 
@@ -44,7 +53,10 @@ def _etiqueta(col: str) -> str:
 
 
 def _pie_de_figura(fig, spec: datasets.DatasetSpec, extra: str = "") -> None:
-    nota = f"{spec.name} — datos SIMULADOS de laboratorio"
+    procedencia = (
+        "datos SIMULADOS de laboratorio" if spec.simulated else "datos reales (UCI id=601)"
+    )
+    nota = f"{spec.name} — {procedencia}"
     if extra:
         nota = f"{extra}  ·  {nota}"
     fig.text(0.01, 0.01, nota, fontsize=7, color="gray", ha="left", va="bottom")
@@ -298,6 +310,66 @@ def figure_pr_roc_curves(
     )
     fig.tight_layout(rect=(0, 0.03, 1, 0.94))
     _pie_de_figura(fig, spec)
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
+
+
+def figure_pr_curves_two_datasets(
+    curvas: dict[str, tuple[np.ndarray, np.ndarray]],
+    prevalencias: dict[str, float],
+    etiquetas: dict[str, str],
+    path: Path,
+) -> Path:
+    """Curvas PR del mejor modelo de `lab180` y de `ai4i2020`, en el mismo eje (CLAUDE.md §13).
+
+    Es la prueba visual de "un pipeline, dos datasets": el mismo tipo de curva,
+    calculada con el mismo código (`evaluate.out_of_fold_predictions`), para
+    dos datasets de tamaño radicalmente distinto. `curvas[dataset] =
+    (y_true_bin, y_score)`; `etiquetas[dataset]` es el nombre del modelo
+    graficado (el de mejor PR-AUC medio de cada uno, no necesariamente el
+    mismo modelo en los dos).
+    """
+    from sklearn.metrics import precision_recall_curve
+
+    fig, ax = plt.subplots(figsize=(7.5, 6.0))
+    colores = {"lab180": COLOR_POSITIVA, "ai4i2020": COLOR_NEGATIVA}
+
+    for nombre_dataset, (y_true, y_score) in curvas.items():
+        color = colores.get(nombre_dataset, "gray")
+        precision, recall, _ = precision_recall_curve(y_true, y_score)
+        modelo = etiquetas.get(nombre_dataset, "?")
+        ax.plot(
+            recall,
+            precision,
+            label=f"{nombre_dataset} ({modelo}, n={len(y_true)})",
+            color=color,
+            linewidth=2.0,
+        )
+        prevalencia = prevalencias[nombre_dataset]
+        ax.axhline(prevalencia, color=color, linewidth=1.0, linestyle=":", alpha=0.7)
+
+    ax.set_xlabel("recall", fontsize=9)
+    ax.set_ylabel("precision", fontsize=9)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1.02)
+    ax.set_title(
+        "El mismo pipeline, dos datasets: la curva PR de cada uno",
+        fontsize=12,
+        loc="left",
+    )
+    ax.legend(fontsize=9, loc="lower left")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    fig.text(
+        0.01,
+        0.01,
+        "líneas punteadas = azar (prevalencia real de cada dataset) · "
+        "predicciones out-of-fold, StratifiedKFold(5) sin repetir",
+        fontsize=7,
+        color="gray",
+        ha="left",
+        va="bottom",
+    )
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path
