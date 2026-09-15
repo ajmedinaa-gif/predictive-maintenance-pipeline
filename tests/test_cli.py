@@ -315,10 +315,15 @@ def _informe_metricas_sintetico(n_positivos: int, n_filas: int) -> dict:
     }
 
 
-def _informe_calibracion_sintetico() -> dict:
+def _informe_calibracion_sintetico(n_positivos: int) -> dict:
+    tp = round(0.8 * n_positivos)
     return {
         "variantes": {
-            "logistic_plain_platt": {"umbral_empirico": 0.1, "ahorro_pct": 50.0},
+            "logistic_plain_platt": {
+                "umbral_empirico": 0.1,
+                "ahorro_pct": 50.0,
+                "matriz_confusion": {"tp": tp, "fn": n_positivos - tp, "tn": 0, "fp": 0},
+            },
         }
     }
 
@@ -344,7 +349,7 @@ def test_compare_command_writes_comparison_report_and_figure(tmp_path, monkeypat
             encoding="utf-8",
         )
         (reports_dir / f"calibration_{nombre}.json").write_text(
-            json.dumps(_informe_calibracion_sintetico()), encoding="utf-8"
+            json.dumps(_informe_calibracion_sintetico(n_pos)), encoding="utf-8"
         )
 
     # `compare` recalcula las curvas out-of-fold del "mejor modelo" sobre datos
@@ -365,7 +370,10 @@ def test_compare_command_writes_comparison_report_and_figure(tmp_path, monkeypat
     ruta_json = reports_dir / "comparison.json"
     assert ruta_json.exists()
     informe = json.loads(ruta_json.read_text(encoding="utf-8"))
-    assert informe["datasets"]["lab180"]["mejor_modelo"] == "dummy_most_frequent"
+    assert informe["datasets"]["lab180"]["mejor_modelo_pr_auc_nombre"] == "dummy_most_frequent"
+    assert informe["datasets"]["lab180"]["modelo_decision"] == "logistic_plain_platt"
+    assert informe["datasets"]["lab180"]["recall_platt_tp"] == 8
+    assert informe["datasets"]["lab180"]["recall_platt_n_positivos"] == 10
     assert informe["datasets"]["ai4i2020"]["n_positivos"] == 339
 
     ruta_figura = tmp_path / "reports" / "figures" / "comparacion_pr.png"

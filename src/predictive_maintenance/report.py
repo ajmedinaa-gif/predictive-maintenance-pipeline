@@ -309,12 +309,17 @@ def build_comparison_report(*, datasets_info: dict[str, dict]) -> dict:
     """Payload de la Fase 5, Bloque A: la tabla "un pipeline, dos datasets" (CLAUDE.md §13).
 
     `datasets_info[nombre]` trae, por dataset: `n_filas`, `n_positivos`,
-    `prevalencia`, `dummy_accuracy`, `mejor_modelo`, `mejor_pr_auc`,
-    `mejor_modelo_recall_wilson_ci` (del modelo de mejor PR-AUC medio),
-    `umbral_optimo_platt` y `ahorro_pct_platt` (de `logistic_plain` + Platt,
-    la decisión fija del proyecto en ambos datasets, CLAUDE.md §9.2). Todo
-    leído de `reports/metrics_*.json` y `reports/calibration_*.json` ya
-    generados -- ningún número se escribe a mano aquí.
+    `prevalencia`, `dummy_accuracy`; `mejor_modelo_pr_auc_nombre` y
+    `mejor_modelo_pr_auc_valor` son SOLO informativos (el modelo de mejor
+    PR-AUC medio, el que dibuja `figure_pr_curves_two_datasets`) y nunca la
+    base del recall ni del IC. El recall (`recall_platt_a_umbral_optimo`,
+    `recall_platt_tp`/`recall_platt_n_positivos`) y su IC de Wilson
+    (`recall_wilson_ci_platt`), el umbral (`umbral_optimo_platt`) y el ahorro
+    (`ahorro_pct_platt`) son SIEMPRE del mismo modelo -- `logistic_plain` +
+    Platt, la decisión fija del proyecto (CLAUDE.md §9.2) -- evaluado a SU
+    umbral óptimo por coste, nunca a 0.5. Todo leído de
+    `reports/metrics_*.json` y `reports/calibration_*.json` ya generados --
+    ningún número se escribe a mano aquí.
     """
     return _jsonable({"datasets": datasets_info})
 

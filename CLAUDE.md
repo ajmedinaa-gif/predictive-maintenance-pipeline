@@ -492,7 +492,7 @@ la prevalencia actual"*.
 | n | 180 (179 validadas) | **10 000** (medido) |
 | positivos | 10 (5.5556 %) | **339 (3.39 %)** (medido, `pdm-cli download --dataset ai4i2020`) |
 | variables | 5, mutuamente independientes | 6 + `type`, físicamente acopladas |
-| modos de fallo | no etiquetados | 5: **TWF=46, HDF=115, PWF=95, OSF=98, RNF=19** (medido) |
+| modos de fallo | no etiquetados | 5: **TWF=46, HDF=115, PWF=95, OSF=98, RNF=19**, suman 373 > 339 positivos — ver §13.2 |
 | papel en el repo | **contraejemplo**: qué NO se puede concluir con pocos datos | demostración de que el pipeline es una abstracción |
 
 `lab180` **no se presenta como resultado principal.** La tabla de la izquierda
@@ -584,26 +584,47 @@ a mano:
 |---|---|---|
 | positivos | 10 (5.59 %) | 339 (3.39 %) |
 | accuracy del dummy | 94.41 % | 96.61 % |
-| mejor modelo (por PR-AUC) | `logistic_plain` | `gradient_boosting` |
-| PR-AUC del mejor modelo | 0.7153 | 0.9108 |
-| recall del mejor modelo (TP/positivos) | 4/10 | 277/339 |
-| **IC de Wilson del recall** | **[0.168, 0.687] — 52 pp de ancho** | **[0.772, 0.855] — 8 pp de ancho** |
-| umbral óptimo (`logistic_plain` + Platt) | 0.141 | 0.084 |
-| ahorro del umbral empírico sobre t=0.5 | 64.7 % | 40.7 % |
+| mejor modelo por PR-AUC (informativo, no decide el recall) | `logistic_plain` — 0.7153 | `gradient_boosting` — 0.9108 |
+| **modelo de la decisión** (§9.2, mismo en ambos) | `logistic_plain` + Platt | `logistic_plain` + Platt |
+| umbral óptimo por coste | 0.141 | 0.084 |
+| recall a ESE umbral (TP/positivos) | 8/10 | 267/339 |
+| **IC de Wilson del recall, al umbral óptimo** | **[0.490, 0.943] — 45 pp de ancho** | **[0.741, 0.828] — 9 pp de ancho** |
+| ahorro del umbral óptimo sobre t=0.5 | 64.7 % | 40.7 % |
+
+**Regla de esta tabla, la misma que en el README: las cuatro filas de la
+decisión son SIEMPRE `logistic_plain` + Platt, evaluado a SU umbral óptimo por
+coste, nunca a 0.5** — reportar el recall a 0.5 aquí sería contradecir la
+tesis de §9 sobre por qué 0.5 no tiene sentido económico en este problema. La
+fila "mejor modelo por PR-AUC" es aparte, informativa, y es la que dibuja
+`reports/figures/comparacion_pr.png` — nunca la base del IC.
+
+El IC de `lab180` en esta tabla, **[0.490, 0.943]**, coincide número a número
+con el de §8.2 (`logistic_balanced` a t=0.5) y con MODEL_CARD.md. Es la MISMA
+CIFRA por una coincidencia de conteo (8 aciertos sobre 10 positivos en ambos
+casos: `logistic_plain`+Platt@0.141 y `logistic_balanced`@0.5 aciertan
+exactamente los mismos 8), no la misma medición — modelo, umbral y protocolo
+de CV son distintos. No se fuerza que coincida; se verifica que coincide y se
+anota.
 
 **La conclusión salta a la vista en la fila del IC de Wilson: con 179 filas,
-un intervalo de 52 puntos porcentuales hace que "recall 0.17" y "recall 0.69"
+un intervalo de 45 puntos porcentuales hace que "recall 0.49" y "recall 0.94"
 sean estadísticamente indistinguibles — inútil para decidir nada en
-producción. Con 10 000 filas, el mismo cálculo da un intervalo de 8 puntos:
-accionable.** La fila del umbral óptimo usa siempre `logistic_plain` + Platt
-—la decisión fija del proyecto (§9.2)— en los dos datasets, no el modelo de
-mejor PR-AUC de cada uno: es la comparación metodológicamente correcta,
-porque es la misma ruta de decisión económica aplicada dos veces.
+producción. Con 10 000 filas, el mismo cálculo da un intervalo de 9 puntos:
+accionable.**
 
-La figura `reports/figures/comparacion_pr.png` pone las curvas PR de ambos
-"mejores modelos" en el mismo eje: la de `lab180` es dentada (10 positivos,
-cada uno mueve la curva) y la de `ai4i2020` es suave y muy por encima de su
-propia línea de azar.
+La figura `reports/figures/comparacion_pr.png` pone las curvas PR del modelo
+de MEJOR PR-AUC de cada dataset (no de `logistic_plain`+Platt: es una
+comparación de calidad de ordenación, no de la decisión por coste) en el
+mismo eje: la de `lab180` es dentada (10 positivos, cada uno mueve la curva) y
+la de `ai4i2020` es suave y muy por encima de su propia línea de azar.
+
+Los cinco modos de fallo de `ai4i2020` (§13) suman 373 sobre 339 positivos:
+348 filas tienen algún modo marcado (24 con dos o más a la vez), pero solo
+330 de esas 348 tienen también `machine_failure=1` (18 marcan un modo sin
+activar el indicador general); las 9 filas restantes hasta 339 tienen
+`machine_failure=1` sin ningún modo marcado. 330 + 9 = 339. No es un error de
+conteo: es una inconsistencia conocida del dataset original entre
+`Machine failure` y sus cinco sub-indicadores.
 
 ## 14. Entorno de desarrollo: macOS Intel
 

@@ -505,8 +505,21 @@ porque todo lo específico de cada dataset vive en su `DatasetAdapter`
 (`engineer_features`). `pipeline.py`, `evaluate.py` y `calibration.py` no
 cambian una sola línea entre uno y otro.
 
-Todos los números de esta sección salen de `reports/comparison.json`,
-generado por `pdm-cli compare` a partir de `reports/metrics_*.json` y
+Sobre `ai4i2020`: los cinco modos de fallo documentados (TWF, HDF, PWF, OSF,
+RNF) suman **373** entre sus 10 000 filas — más que los 339 positivos — porque
+una máquina puede fallar por varios modos a la vez, y porque el dataset
+original tiene una inconsistencia conocida entre el indicador `machine_failure`
+y sus cinco sub-modos. Verificado sobre el CSV real: 348 filas tienen al menos
+un modo marcado (24 de ellas, dos o más a la vez), pero solo 330 de esas 348
+tienen además `machine_failure=1` — las 18 restantes marcan un modo sin que el
+indicador general se active. Las 9 filas que faltan para llegar a 339
+(330 + 9) tienen `machine_failure=1` sin ningún modo marcado: un fallo real,
+sin causa de las cinco documentadas. Ninguna de estas cinco columnas entra
+como feature de modelado (CLAUDE.md §13): son casi deterministas de
+`machine_failure` y usarlas sería fuga del objetivo.
+
+Todos los números de la tabla salen de `reports/comparison.json`, generado por
+`pdm-cli compare` a partir de `reports/metrics_*.json` y
 `reports/calibration_*.json` ya medidos sobre ambos datasets. Ningún número
 está escrito a mano.
 
@@ -514,18 +527,37 @@ está escrito a mano.
 |---|---|---|
 | positivos | 10 (5.59 %) | 339 (3.39 %) |
 | **accuracy del clasificador trivial** | **94.41 %** | **96.61 %** |
-| mejor modelo (por PR-AUC) | `logistic_plain` | `gradient_boosting` |
-| PR-AUC del mejor modelo | 0.7153 | 0.9108 |
-| recall del mejor modelo (aciertos/positivos) | 4/10 | 277/339 |
-| **IC de Wilson del recall** | **[0.168, 0.687] — 52 pp de ancho** | **[0.772, 0.855] — 8 pp de ancho** |
-| umbral óptimo (`logistic_plain` + Platt, CLAUDE.md §9.2) | 0.141 | 0.084 |
-| ahorro del umbral empírico sobre t=0.5 | 64.7 % | 40.7 % |
+| mejor modelo por PR-AUC (informativo) | `logistic_plain` — PR-AUC 0.7153 | `gradient_boosting` — PR-AUC 0.9108 |
+| **modelo de la decisión** (CLAUDE.md §9.2, los dos datasets) | `logistic_plain` + Platt | `logistic_plain` + Platt |
+| umbral óptimo por coste | 0.141 | 0.084 |
+| recall a ESE umbral (aciertos/positivos) | 8/10 | 267/339 |
+| **IC de Wilson del recall, al umbral óptimo** | **[0.490, 0.943] — 45 pp de ancho** | **[0.741, 0.828] — 9 pp de ancho** |
+| ahorro del umbral óptimo sobre t=0.5 | 64.7 % | 40.7 % |
+
+**Las cuatro últimas filas son siempre el mismo modelo, al mismo tipo de
+umbral, en los dos datasets** — la ruta fija del proyecto: sin balanceo →
+calibrar con Platt → optimizar umbral por coste (CLAUDE.md §2.5, §9.2). El
+recall y su IC están medidos **a ese umbral óptimo, nunca a 0.5** — reportarlo
+a 0.5 aquí contradiría la sección anterior, que argumenta que 0.5 no tiene
+ningún significado económico en este problema. La fila "mejor modelo por
+PR-AUC" es aparte y solo informativa: es el modelo que dibuja la figura de más
+abajo, pero no aporta el recall ni el IC de la tabla.
+
+**Coincidencia a anotar, no a esconder:** el IC de `lab180` en esta tabla
+—[0.490, 0.943], de `logistic_plain`+Platt a t=0.141— coincide, número a
+número, con el que reportan CLAUDE.md §8.2 y [`MODEL_CARD.md`](MODEL_CARD.md)
+para `logistic_balanced` a t=0.5. Son la misma cifra por casualidad de conteo
+(8 aciertos sobre 10 positivos en ambos casos), no la misma medición: modelo,
+umbral y protocolo de validación cruzada son distintos. Con solo 10 positivos,
+que dos rutas de decisión razonables lleguen al mismo número de aciertos no es
+sorprendente — es, otra vez, el intervalo de confianza diciendo que hay poca
+información para distinguir entre ellas.
 
 La fila que hay que leer dos veces es la del intervalo de confianza del
-recall: **con 179 filas, un IC de 52 puntos porcentuales significa que
-"recall 0.17" y "recall 0.69" son, con esta muestra, estadísticamente
+recall: **con 179 filas, un IC de 45 puntos porcentuales significa que
+"recall 0.49" y "recall 0.94" son, con esta muestra, estadísticamente
 indistinguibles — no sirve para decidir nada en producción. Con 10 000 filas,
-el mismo cálculo de Wilson da un intervalo de 8 puntos: sí es accionable.**
+el mismo cálculo de Wilson da un intervalo de 9 puntos: sí es accionable.**
 No es que `ai4i2020` tenga "mejores datos" en un sentido abstracto — tiene
 34 veces más positivos, y eso es, literalmente, lo único que estrecha un
 intervalo de Wilson.
@@ -537,9 +569,12 @@ prevalencia real (3.39 %) es menor. La accuracy miente más cuanto más
 desbalanceada está la clase, y eso no depende de cuántas filas haya.
 
 ![Curvas PR de ambos datasets en el mismo eje](reports/figures/comparacion_pr.png)
-*La curva de `lab180` (naranja) es dentada porque cada uno de sus 10
-positivos mueve la curva de un salto; la de `ai4i2020` (azul) es suave y se
-mantiene muy por encima de su propia línea de azar en casi todo el rango de
+*Esta figura usa el modelo de MEJOR PR-AUC de cada dataset (fila informativa
+de la tabla: `logistic_plain` y `gradient_boosting`), no `logistic_plain`+Platt
+— es una comparación de calidad de ordenación, no de la decisión por coste. La
+curva de `lab180` (naranja) es dentada porque cada uno de sus 10 positivos
+mueve la curva de un salto; la de `ai4i2020` (azul) es suave y se mantiene muy
+por encima de su propia línea de azar en casi todo el rango de
 recall. Ambas son predicciones out-of-fold de un único `StratifiedKFold(5)`,
 calculadas con el mismo código.*
 

@@ -589,40 +589,61 @@ def compare_command() -> None:
         calibracion = json.loads(calibration_path.read_text(encoding="utf-8"))
 
         modelos = metricas["modelos"]
-        mejor_nombre = max(
+        # "Mejor modelo por PR-AUC": SOLO informativo (para la figura de curvas
+        # PR y su propia fila en la tabla). NUNCA es la base del recall ni del
+        # IC de la tabla comparativa -- eso sería reportar el recall al umbral
+        # 0.5 (`aggregate_confusion_matrix` lo mide ahí) justo después de
+        # argumentar que 0.5 no tiene sentido económico en este problema.
+        mejor_pr_auc_nombre = max(
             modelos, key=lambda nombre: modelos[nombre]["metricas"]["average_precision"]["media"]
         )
-        mejor = modelos[mejor_nombre]
+        mejor_pr_auc = modelos[mejor_pr_auc_nombre]
         n_positivos = metricas["n_positivos"]
         n_filas = metricas["n_filas_entrenamiento"]
+
+        # El modelo de la DECISIÓN del proyecto (CLAUDE.md §9.2): siempre
+        # `logistic_plain` + Platt, en los dos datasets, evaluado a SU umbral
+        # óptimo por coste -- nunca a 0.5. `evaluate_cost_variants` ya deja la
+        # matriz de confusión calculada exactamente a ese umbral.
         platt = calibracion["variantes"]["logistic_plain_platt"]
+        matriz_platt = platt["matriz_confusion"]
+        tp_platt, fn_platt = matriz_platt["tp"], matriz_platt["fn"]
+        n_positivos_platt = tp_platt + fn_platt
+        recall_platt = tp_platt / n_positivos_platt if n_positivos_platt else float("nan")
+        recall_ci_platt = evaluate.recall_wilson_ci(tp_platt, n_positivos_platt)
 
         datasets_info[nombre_dataset] = {
             "n_filas": n_filas,
             "n_positivos": n_positivos,
             "prevalencia": n_positivos / n_filas,
             "dummy_accuracy": modelos["dummy_most_frequent"]["metricas"]["accuracy"]["media"],
-            "mejor_modelo": mejor_nombre,
-            "mejor_pr_auc": mejor["metricas"]["average_precision"]["media"],
-            "mejor_modelo_recall_wilson_ci": mejor["matriz_confusion"]["recall_wilson_ci"],
-            "mejor_modelo_tp": mejor["matriz_confusion"]["tp"],
+            "mejor_modelo_pr_auc_nombre": mejor_pr_auc_nombre,
+            "mejor_modelo_pr_auc_valor": mejor_pr_auc["metricas"]["average_precision"]["media"],
+            "modelo_decision": "logistic_plain_platt",
             "umbral_optimo_platt": platt["umbral_empirico"],
+            "recall_platt_a_umbral_optimo": recall_platt,
+            "recall_platt_tp": tp_platt,
+            "recall_platt_n_positivos": n_positivos_platt,
+            "recall_wilson_ci_platt": list(recall_ci_platt),
             "ahorro_pct_platt": platt["ahorro_pct"],
         }
 
         spec, _df, X, y = _cargar_xy_validado(nombre_dataset)
         cfg = evaluate.EvalConfig.for_dataset(nombre_dataset, get_settings())
-        pipe = pipeline.build_pipeline(mejor_nombre, seed=cfg.seed)
+        pipe = pipeline.build_pipeline(mejor_pr_auc_nombre, seed=cfg.seed)
         y_true_bin, y_score, _ = evaluate.out_of_fold_predictions(
             pipe, X, y, seed=cfg.seed, n_splits=5, positive_label=spec.positive_label
         )
         curvas[nombre_dataset] = (y_true_bin, y_score)
         prevalencias[nombre_dataset] = n_positivos / n_filas
-        etiquetas_modelo[nombre_dataset] = mejor_nombre
+        etiquetas_modelo[nombre_dataset] = mejor_pr_auc_nombre
 
         typer.echo(
-            f"{nombre_dataset}: mejor modelo {mejor_nombre} "
-            f"(PR-AUC {datasets_info[nombre_dataset]['mejor_pr_auc']:.4f})"
+            f"{nombre_dataset}: mejor PR-AUC {mejor_pr_auc_nombre} "
+            f"({datasets_info[nombre_dataset]['mejor_modelo_pr_auc_valor']:.4f}) -- "
+            f"logistic_plain+Platt @ t={platt['umbral_empirico']:.3f}: "
+            f"recall {tp_platt}/{n_positivos_platt}, "
+            f"IC Wilson [{recall_ci_platt[0]:.3f}, {recall_ci_platt[1]:.3f}]"
         )
 
     informe = report.build_comparison_report(datasets_info=datasets_info)
