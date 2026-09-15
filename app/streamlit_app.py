@@ -361,7 +361,14 @@ with tab_limites:
     if ruta_comparacion is not None:
         st.subheader("Curvas de aprendizaje de ambos datasets, en el mismo eje")
         st.image(str(ruta_comparacion), use_container_width=True)
-        st.caption("Con 10 000 filas la curva es una curva; con 180, es ruido.")
+        st.caption(
+            "Con 10 000 filas la estimación es precisa; con 180, la banda se come "
+            "el eje. Ojo: la línea de lab180 queda por encima de la de ai4i2020 "
+            "(~0.73 frente a ~0.45), pero eso NO significa un modelo mejor -- con "
+            "~2 positivos por fold de test, ese PR-AUC es optimista e inestable, y "
+            "la banda de hasta ±0.30 lo delata. Lo comparable es la anchura de la "
+            "banda, no la altura de la línea."
+        )
     else:
         st.info(
             "Comparación de curvas de aprendizaje no disponible todavía. "

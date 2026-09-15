@@ -571,11 +571,17 @@ def figure_learning_curves_comparison(
     `pr_auc_desv`, ya en `reports/limits_<dataset>.json`); `n_filas` el
     tamaño total de ESE dataset. El eje x se normaliza a
     `n_entrenamiento / n_filas` porque 179 y 10 000 no son comparables en
-    valor absoluto -- la fracción del dataset sí lo es. Es la prueba visual
-    más directa del proyecto de que el tamaño muestral es el problema: la
-    curva de `ai4i2020` sube con bandas estrechas; la de `lab180` baja con
-    bandas de hasta ±0.30 -- no es una curva de aprendizaje, es ruido de
-    muestreo (CLAUDE.md §10.2).
+    valor absoluto -- la fracción del dataset sí lo es.
+
+    ADVERTENCIA de lectura (verificada, no hipotética): la línea de `lab180`
+    queda POR ENCIMA de la de `ai4i2020` (~0.73 frente a ~0.45) -- un vistazo
+    rápido concluye que el dataset pequeño da un mejor modelo, justo lo
+    contrario de lo que argumenta el proyecto. Esa altura NO es una señal de
+    calidad: con ~2 positivos por fold de test, el `average_precision` de
+    `lab180` es optimista e inestable, y la banda de hasta ±0.30 es
+    precisamente lo que lo delata. **Lo comparable entre los dos datasets es
+    la ANCHURA de la banda, no la altura de la línea** -- por eso el título
+    habla de precisión de la estimación, no de qué modelo "gana".
     """
     fig, ax = plt.subplots(figsize=(7.5, 5.2))
     colores = {"lab180": COLOR_POSITIVA, "ai4i2020": COLOR_NEGATIVA}
@@ -599,7 +605,7 @@ def figure_learning_curves_comparison(
     ax.set_ylabel("PR-AUC (StratifiedKFold)", fontsize=9)
     ax.set_ylim(-0.05, 1.05)
     ax.set_title(
-        "Con 10 000 filas la curva es una curva; con 180, es ruido",
+        "Con 10 000 filas la estimación es precisa; con 180, la banda se come el eje",
         fontsize=12,
         loc="left",
     )
@@ -608,12 +614,15 @@ def figure_learning_curves_comparison(
     fig.text(
         0.01,
         0.01,
-        "bandas = ±1 desviación · StratifiedKFold(5), sin suavizar",
+        "bandas = ±1 desviación · StratifiedKFold(5), sin suavizar · lo comparable es la\n"
+        "ANCHURA de la banda, no la altura de la línea: con ~2 positivos por fold de test,\n"
+        "el PR-AUC más alto de lab180 es optimista e inestable, no un mejor modelo",
         fontsize=7,
         color="gray",
         ha="left",
         va="bottom",
     )
+    fig.subplots_adjust(bottom=0.22)
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path

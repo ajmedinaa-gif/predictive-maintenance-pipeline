@@ -61,7 +61,13 @@ de un salto; la de `ai4i2020` es suave y se mantiene muy por encima de su
 propia línea de azar.*
 
 ![Curvas de aprendizaje de ambos datasets, eje x normalizado](reports/figures/comparacion_learning_curve.png)
-*Con 10 000 filas la curva es una curva; con 180, es ruido.*
+*Con 10 000 filas la estimación es precisa; con 180, la banda se come el eje.
+**Ojo con leer esto al revés**: la línea de `lab180` queda por encima de la de
+`ai4i2020` (~0.73 frente a ~0.45), pero esa altura no significa que el dataset
+pequeño dé un mejor modelo — con ~2 positivos por fold de test, el PR-AUC de
+`lab180` es optimista e inestable, y la banda de hasta ±0.30 es justo lo que lo
+delata. Lo comparable entre los dos datasets es la anchura de la banda, no la
+altura de la línea.*
 
 ## Por qué la accuracy miente en este problema
 
