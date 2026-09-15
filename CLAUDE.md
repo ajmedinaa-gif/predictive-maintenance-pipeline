@@ -719,6 +719,14 @@ estrangula térmicamente.
 - En el README, `docker compose up` se documenta como quickstart para quien clone
   el repo. CI demuestra que funciona.
 
+**Medido (Fase 5, Bloque B): la imagen pesa 921 MiB (966 348 736 bytes),
+según el job `docker` de CI — no una estimación.** El objetivo original de
+esta fase era < 400 MB y no se cumplió. Detalle de qué lo infla y por qué no
+se redujo en README.md, sección "Decisiones de diseño y alternativas
+descartadas". Si algún día se retoma, la vía es partir el `Dockerfile` en dos
+imágenes finales (una para `pipeline`, otra para `dashboard` con
+Streamlit/`pyarrow`) que compartan el mismo stage `builder`.
+
 ### 14.8 Sistema de ficheros insensible a mayúsculas
 
 APFS no distingue `Data/` de `data/`; Linux y GitHub sí. Nombres en minúsculas y

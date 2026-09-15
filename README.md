@@ -137,6 +137,10 @@ docker compose up dashboard   # http://localhost:8501
 Sin Docker: `uv sync && make run && make dashboard` (ver [§
 Desarrollo](#desarrollo)).
 
+**Tamaño de la imagen, medido por el job `docker` de CI (no estimado):
+921 MiB (966 348 736 bytes).** Muy por encima del objetivo original de
+< 400 MB — ver la entrada correspondiente en [§ Decisiones de diseño](#decisiones-de-diseño-y-alternativas-descartadas).
+
 ## Estructura del repo
 
 ```
@@ -344,6 +348,21 @@ navegador sin instalar nada) o la pestaña correspondiente del dashboard.
   `reports/*.json` y las figuras PNG ya generadas por `figures.py` (las
   incrusta en base64). Mantiene la regla del proyecto de que el dibujo vive
   en un único módulo.
+- **La imagen Docker pesa 921 MiB, no los <400 MB que se fijaron como
+  objetivo al planificar esta fase — medido por el job `docker` de CI, no
+  estimado.** Lo que la infla es el propio stack científico: scipy,
+  scikit-learn, pandas y numpy de por sí; `llvmlite` + `numba` (que arrastra
+  `shap`, la compilación JIT necesita el toolchain de LLVM empaquetado);
+  `statsmodels`; y `streamlit` + `pyarrow` para el dashboard. No se redujo
+  porque `streamlit`/`pyarrow` solo los usa el servicio `dashboard`, nunca el
+  `pipeline` — partir el `Dockerfile` en dos imágenes finales que compartan
+  el mismo stage `builder` (una para `pipeline`, sin Streamlit; otra para
+  `dashboard`) bajaría el peso de la primera de forma significativa. Queda
+  anotado como mejora pendiente, no hecha: no se ha tocado el `Dockerfile`
+  para no comprometer sin probar en Docker de verdad, que esta máquina no
+  tiene (CLAUDE.md §14.7). La conclusión sin adornos: es el coste real de
+  empaquetar un stack científico completo en un contenedor, y se reporta
+  medido en vez de fijar un objetivo cómodo después de conocer el número.
 
 ## Limitaciones
 

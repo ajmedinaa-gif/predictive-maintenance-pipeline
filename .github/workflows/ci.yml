@@ -112,7 +112,12 @@ jobs:
 
       # Solo lab180: viene versionado en el repo, sin descarga externa
       # (CLAUDE.md §2.11). ai4i2020 corre aparte, manual (job de abajo):
-      # requiere red y no debe bloquear cada push/PR.
+      # requiere red y no debe bloquear cada push/PR. `eda` va antes que
+      # `run`, igual que en `make all`/`make run`, para que
+      # `pdm-cli report` no publique la sección de datos vacía.
+      - name: pdm-cli eda --dataset lab180
+        run: uv run pdm-cli eda --dataset lab180
+
       - name: pdm-cli run --dataset lab180
         run: uv run pdm-cli run --dataset lab180
 
@@ -165,6 +170,9 @@ jobs:
 
       - name: pdm-cli download --dataset ai4i2020
         run: uv run pdm-cli download --dataset ai4i2020
+
+      - name: pdm-cli eda --dataset ai4i2020
+        run: uv run pdm-cli eda --dataset ai4i2020
 
       - name: pdm-cli run --dataset ai4i2020
         run: uv run pdm-cli run --dataset ai4i2020

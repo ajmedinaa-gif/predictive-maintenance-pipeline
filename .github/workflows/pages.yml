@@ -42,6 +42,7 @@ jobs:
 
       - name: Generar el informe de lab180
         run: |
+          uv run pdm-cli eda --dataset lab180
           uv run pdm-cli run --dataset lab180
           uv run pdm-cli calibrate --dataset lab180
           uv run pdm-cli explain --dataset lab180
@@ -54,6 +55,7 @@ jobs:
         continue-on-error: true
         run: |
           uv run pdm-cli download --dataset ai4i2020
+          uv run pdm-cli eda --dataset ai4i2020
           uv run pdm-cli run --dataset ai4i2020
           uv run pdm-cli calibrate --dataset ai4i2020
           uv run pdm-cli explain --dataset ai4i2020

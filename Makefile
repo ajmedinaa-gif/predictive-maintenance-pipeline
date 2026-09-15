@@ -42,15 +42,19 @@ report:
 data:
 	uv run pdm-cli download --dataset ai4i2020
 
-# El mismo pipeline sobre los dos datasets (CLAUDE.md §13.1): contrato +
-# zoo de modelos + calibración + explicabilidad + límites + informe HTML,
+# El mismo pipeline sobre los dos datasets (CLAUDE.md §13.1): EDA + contrato
+# + zoo de modelos + calibración + explicabilidad + límites + informe HTML,
 # para `lab180` (sin red) y para `ai4i2020` (descarga primero vía `data`).
+# Mismo orden que `all` (abajo) para lab180, para que el informe HTML nunca
+# salga con la sección de EDA vacía.
 run: data
+	uv run pdm-cli eda --dataset lab180
 	uv run pdm-cli run --dataset lab180
 	uv run pdm-cli calibrate --dataset lab180
 	uv run pdm-cli explain --dataset lab180
 	uv run pdm-cli limits --dataset lab180
 	uv run pdm-cli report --dataset lab180
+	uv run pdm-cli eda --dataset ai4i2020
 	uv run pdm-cli run --dataset ai4i2020
 	uv run pdm-cli calibrate --dataset ai4i2020
 	uv run pdm-cli explain --dataset ai4i2020

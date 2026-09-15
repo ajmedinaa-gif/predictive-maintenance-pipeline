@@ -466,6 +466,11 @@ sea lo que prueba que funcionan. NO pidas ejecutar `docker build` ni
     /opt/venv; runtime python:3.11-slim, copia el venv, usuario no-root appuser,
     WORKDIR /app, HEALTHCHECK, ENTRYPOINT en pdm-cli. Objetivo < 400 MB, mide y
     repórtalo. .dockerignore agresivo.
+
+    > **Resultado real (medido por el job `docker` de CI): 921 MiB. El
+    > objetivo de <400 MB no se cumplió.** Detalle de por qué y qué queda
+    > pendiente en README.md, sección "Decisiones de diseño y alternativas
+    > descartadas".
 12. docker-compose.yml con dos servicios (sin claves `platform`: la máquina y
     CI son ambas x86_64): `pipeline` (ejecuta lab180 y
     ai4i2020, volumen para reports/) y `dashboard` (Streamlit en 8501).
