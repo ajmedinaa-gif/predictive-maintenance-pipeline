@@ -116,7 +116,11 @@ Un commit por fase como mínimo, varios si la fase tiene partes separables.
 `uv` · `pandas` · `numpy` · `scikit-learn>=1.5` · `scipy` · `statsmodels` ·
 `pandera` · `pydantic-settings` · `typer` · `jinja2` · `matplotlib` · `shap` ·
 `streamlit` · `ucimlrepo` · `pytest` + `pytest-cov` + `hypothesis` · `ruff` ·
-`pre-commit` · Docker multi-stage no-root · GitHub Actions.
+`pre-commit` · `nbformat` + `nbclient` + `ipykernel` (Fase 4: ejecutar de
+verdad `notebooks/00_lab_original.ipynb` con un kernel — `make notebook` — en
+vez de ensamblar el JSON a mano; `ipykernel` es el kernel real que `nbclient`
+necesita para ejecutar, no solo para construir el fichero) · Docker
+multi-stage no-root · GitHub Actions.
 
 No añadir dependencias fuera de esta lista sin preguntar primero.
 
@@ -353,17 +357,32 @@ volcado en `reports/calibration_lab180.json`:
 | variante | Brier | PR-AUC | t\* empírico | coste t=0.5 | coste t\* | ahorro | conf. en t\* |
 |---|---|---|---|---|---|---|---|
 | logistic **balanced** | 0.0643 | 0.5918 | 0.470 | 38.0 | 42.0 | −4.0 (**−10.5 %**) | FN=2 TP=8 FP=20 |
-| logistic plain | 0.0329 | 0.6232 | 0.150 | 67.0 | 36.0 | 31.0 (46.3 %) | FN=2 TP=8 FP=8 |
-| logistic plain + **Platt** | 0.0370 | **0.5838** | 0.141 | 100.5 | 35.5 | **65.0 (64.7 %)** | FN=2 TP=8 FP=7 |
+| logistic plain (sin calibrar) | 0.0329 | **0.6232** | 0.150 | 67.0 | 36.0 | 31.0 (46.3 %) | FN=2 TP=8 FP=8 |
+| logistic plain + **Platt** | 0.0370 | 0.5838 | 0.141 | 100.5 | 35.5 | **65.0 (64.7 %)** | FN=2 TP=8 FP=7 |
 | logistic plain + isotónica | **0.0341** | 0.5582 | 0.091 | 50.0 | 38.0 | 12.0 (24.0 %) | FN=2 TP=8 FP=12 |
 
-**Decisión del proyecto: `logistic_plain` + calibración Platt (`sigmoid`) +
-umbral optimizado.** No porque tenga el mejor Brier de las dos calibradas (no
-lo tiene, ver §9.1b) sino porque tiene el mejor PR-AUC de las dos y, sobre
-todo, el mejor ahorro con diferencia: 65.0 MM CLP frente a los 12.0 MM de la
-isotónica, sobre el mismo dataset y el mismo protocolo. `logistic_balanced`
-—incluida como contraejemplo de la regla dura 5— es la única variante cuyo
-coste al umbral "óptimo" empeora respecto de quedarse en 0.5.
+El PR-AUC más alto de la tabla es el de `logistic_plain` SIN calibrar
+(0.6232) — calibrar cuesta algo de PR-AUC (Platt reescala para que la
+probabilidad signifique una frecuencia, no para ordenar mejor) y se acepta a
+cambio de una probabilidad utilizable para decidir. **Decisión del proyecto:
+`logistic_plain` + calibración Platt (`sigmoid`) + umbral optimizado.** No
+porque tenga el mejor Brier de las dos calibradas (no lo tiene, ver §9.1b), ni
+el mejor PR-AUC de la tabla (tampoco: ese es el sin calibrar), sino porque
+tiene el mejor PR-AUC **de las dos variantes calibradas** y, sobre todo, el
+mejor ahorro con diferencia: 65.0 MM CLP frente a los 12.0 MM de la isotónica,
+sobre el mismo dataset y el mismo protocolo. `logistic_balanced` —incluida
+como contraejemplo de la regla dura 5— es la única variante cuyo coste al
+umbral "óptimo" empeora respecto de quedarse en 0.5.
+
+**Sobre ese −10.5 %:** con selección de umbral *in-sample*, un ahorro
+negativo es imposible — el barrido de `optimal_threshold` incluye 0.5 entre
+sus candidatos, así que el coste mínimo nunca puede ser peor que el coste en
+0.5. Que `logistic_balanced` sí dé negativo es la prueba de que el umbral se
+optimizó **dentro** del fold de entrenamiento y se aplicó a un fold de test
+nunca visto (regla dura 7) — el procedimiento correcto, no un error de signo.
+Segunda lectura, igual de importante: con 10 positivos la propia
+optimización del umbral sobreajusta, y en `logistic_balanced` ese sobreajuste
+es tan severo que el umbral "óptimo" generaliza peor que no tocar nada.
 
 ### 9.3 Verificado y contraintuitivo: la fórmula NO gana al barrido
 

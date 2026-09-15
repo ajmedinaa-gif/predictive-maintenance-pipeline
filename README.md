@@ -43,17 +43,23 @@ dato, no rescatar uno perdido.
 
 ### Asociación univariante (AUC de Mann-Whitney)
 
-| atributo | AUC | p-valor | dirección |
-|---|---|---|---|
-| vibration_mm_s | 0.8503 | 0.0002 | directa (la más fuerte) |
-| temperature_c | 0.7259 | 0.0167 | directa |
-| hours_since_maintenance | 0.7218 | 0.0187 | directa |
-| load_percent | 0.6682 | 0.0746 | **no significativa** |
-| pressure_bar | 0.2515 | 0.0085 | **inversa** |
+Ordenada por `|AUC − 0.5|` (distancia al azar), no por el AUC crudo: ordenar
+por AUC crudo esconde que `pressure_bar` es la **segunda** señal más fuerte
+del dataset, no la última — solo que apunta en dirección inversa.
+
+| atributo | AUC | \|AUC − 0.5\| | p-valor | dirección |
+|---|---|---|---|---|
+| vibration_mm_s | 0.8503 | 0.3503 | 0.0002 | directa (la más fuerte) |
+| pressure_bar | 0.2515 | **0.2485** | 0.0085 | **inversa (la 2ª más fuerte)** |
+| temperature_c | 0.7259 | 0.2259 | 0.0167 | directa |
+| hours_since_maintenance | 0.7218 | 0.2218 | 0.0187 | directa |
+| load_percent | 0.6682 | 0.1682 | 0.0746 | **no significativa** |
 
 `pressure_bar` con AUC < 0.5 significa que los fallos ocurren a presión
 **baja**, no alta: compatible con fuga o pérdida de lubricación/fluido
-hidráulico.
+hidráulico. `eda.univariate_auc` ya devuelve la tabla en este orden (por
+distancia a 0.5); es la tabla de este README la que hasta ahora no lo
+reflejaba.
 
 ### Correlaciones
 
@@ -354,20 +360,42 @@ CLAUDE.md §2.7), sobre las 179 filas validadas:
 | variante | Brier | PR-AUC | umbral empírico | coste t=0.5 | coste t* | ahorro |
 |---|---|---|---|---|---|---|
 | logistic balanced | 0.0643 | 0.5918 | 0.470 | 38.0 MM | 42.0 MM | **−4.0 MM (−10.5 %)** |
-| logistic plain | 0.0329 | 0.6232 | 0.150 | 67.0 MM | 36.0 MM | 31.0 MM (46.3 %) |
-| **logistic plain + Platt** | 0.0370 | **0.5838** | 0.141 | 100.5 MM | **35.5 MM** | **65.0 MM (64.7 %)** |
+| logistic plain (sin calibrar) | 0.0329 | **0.6232** | 0.150 | 67.0 MM | 36.0 MM | 31.0 MM (46.3 %) |
+| **logistic plain + Platt** | 0.0370 | 0.5838 | 0.141 | 100.5 MM | **35.5 MM** | **65.0 MM (64.7 %)** |
 | logistic plain + isotónica | **0.0341** | 0.5582 | 0.091 | 50.0 MM | 38.0 MM | 12.0 MM (24.0 %) |
+
+**El PR-AUC más alto de la tabla es el de `logistic_plain` sin calibrar
+(0.6232), no el de Platt (0.5838).** Calibrar CUESTA algo de PR-AUC — Platt
+reescala las probabilidades para que se puedan tomar decisiones de coste con
+ellas, y esa reescala no está optimizada para ordenar mejor los casos, solo
+para que la probabilidad devuelta signifique lo que dice. Se acepta esa
+pérdida de ordenación a cambio de tener una probabilidad utilizable: sin
+calibrar, el umbral óptimo por coste no tendría ninguna garantía de
+significar nada.
 
 **`logistic_plain` + Platt es la decisión del proyecto** — no porque tenga el
 mejor Brier de las dos variantes calibradas (no lo tiene: la isotónica, por
 azar de qué 8 positivos cayeron en qué fold, sale 0.0341 frente a 0.0370 esta
-vez) sino porque tiene mejor PR-AUC y, sobre todo, más del doble de ahorro que
-la isotónica sobre el mismo protocolo. `logistic_balanced` está en la tabla
-como contraejemplo de la regla dura de CLAUDE.md §2.5 — **nunca combinar
-`class_weight="balanced"` con el umbral por coste**: es la única fila cuyo
-coste al umbral "óptimo" es *peor* que quedarse en 0.5, porque el desbalance
-ya se contó una vez al entrenar y el umbral intenta corregirlo otra vez, sobre
-un fold de test que nunca vio.
+vez), ni el mejor PR-AUC (tampoco: ver el párrafo anterior), sino porque tiene
+más del doble de ahorro que la isotónica sobre el mismo protocolo.
+`logistic_balanced` está en la tabla como contraejemplo de la regla dura de
+CLAUDE.md §2.5 — **nunca combinar `class_weight="balanced"` con el umbral por
+coste**: es la única fila cuyo coste al umbral "óptimo" es *peor* que quedarse
+en 0.5, porque el desbalance ya se contó una vez al entrenar y el umbral
+intenta corregirlo otra vez, sobre un fold de test que nunca vio.
+
+**Ese ahorro negativo (−10.5 %) no es un resultado posible con selección de
+umbral *in-sample*: el barrido de `optimal_threshold` incluye 0.5 entre sus
+candidatos, así que el mínimo nunca puede costar más que quedarse en 0.5** —
+si el umbral se eligiera y se midiera sobre los mismos datos, el "ahorro"
+nunca bajaría de 0 %. Que aquí sí baje es la prueba de que el umbral se elige
+**dentro** del fold de entrenamiento y se aplica a un fold de test que nunca
+vio (regla dura CLAUDE.md §2.7) — el procedimiento correcto, no un error. La
+segunda lectura es igual de importante: con 10 positivos, la propia
+optimización del umbral sobreajusta — el umbral que minimiza el coste en el
+fold de entrenamiento (donde `class_weight="balanced"` ya distorsionó las
+probabilidades) no generaliza, y en `logistic_balanced` generaliza tan mal que
+empeora respecto de no optimizar nada.
 
 ![Coste total frente al umbral de decisión](reports/figures/lab180/cost_vs_threshold.png)
 *Curva de coste de `logistic_plain` + Platt: el mínimo está muy por debajo de
@@ -421,6 +449,17 @@ Tres límites medidos, no supuestos, todos con código en
   mantenga por debajo del 70 %).
 
   ![Estabilidad de la raíz del árbol](reports/figures/lab180/tree_root_stability.png)
+
+- **Tres métodos de importancia, tres órdenes distintos — y eso es
+  esperable, no un error.** SHAP pone `hours_since_maintenance` primero
+  (importancia media 1.07, por delante de `vibration_mm_s` con 1.02); la
+  asociación univariante pone `vibration_mm_s` primero (AUC 0.850, la más
+  alejada de 0.5); la estabilidad de la raíz del árbol también pone
+  `vibration_mm_s` primero, pero solo por una mayoría del 56 %, no un
+  consenso. Con 10 positivos, tres formas razonables de medir "qué atributo
+  importa más" no tienen por qué coincidir — y no coinciden. Por eso este
+  repositorio no afirma qué sensor "causa" el fallo: afirma qué mide cada
+  método, y deja ver que discrepan.
 
 **La recomendación que se sigue de esto**: para estimar un recall de 0.80 con
 un margen de ±10 puntos porcentuales haría falta observar **62 fallos** —
