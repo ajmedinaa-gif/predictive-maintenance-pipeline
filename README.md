@@ -491,17 +491,69 @@ compatible con fuga o pérdida de estanqueidad, no con más estrés mecánico).*
 llegan a "yes" por el mismo atributo — la fila 71, por ejemplo, la domina la
 presión; la fila 40, la vibración.*
 
+## Un pipeline, dos datasets
+
+`lab180` es un contraejemplo deliberado: 180 filas simuladas, 10 positivos,
+variables mutuamente independientes. `ai4i2020` (UCI id=601, Matzka 2020) es
+lo contrario en cada uno de esos ejes: 10 000 filas reales, 339 positivos,
+features físicamente acopladas (`air_temperature_k` y `process_temperature_k`
+correlacionan 0.8761 — muy por encima del umbral de 0.15 que en `lab180` nunca
+se cruza). El mismo `pdm-cli run --dataset <nombre>` corre sobre los dos
+porque todo lo específico de cada dataset vive en su `DatasetAdapter`
+(`src/predictive_maintenance/datasets.py`): dónde está el CSV, qué contrato
+`pandera` lo valida, y cómo se derivan sus features de modelado
+(`engineer_features`). `pipeline.py`, `evaluate.py` y `calibration.py` no
+cambian una sola línea entre uno y otro.
+
+Todos los números de esta sección salen de `reports/comparison.json`,
+generado por `pdm-cli compare` a partir de `reports/metrics_*.json` y
+`reports/calibration_*.json` ya medidos sobre ambos datasets. Ningún número
+está escrito a mano.
+
+| | `lab180` (179 filas válidas) | `ai4i2020` (10 000 filas) |
+|---|---|---|
+| positivos | 10 (5.59 %) | 339 (3.39 %) |
+| **accuracy del clasificador trivial** | **94.41 %** | **96.61 %** |
+| mejor modelo (por PR-AUC) | `logistic_plain` | `gradient_boosting` |
+| PR-AUC del mejor modelo | 0.7153 | 0.9108 |
+| recall del mejor modelo (aciertos/positivos) | 4/10 | 277/339 |
+| **IC de Wilson del recall** | **[0.168, 0.687] — 52 pp de ancho** | **[0.772, 0.855] — 8 pp de ancho** |
+| umbral óptimo (`logistic_plain` + Platt, CLAUDE.md §9.2) | 0.141 | 0.084 |
+| ahorro del umbral empírico sobre t=0.5 | 64.7 % | 40.7 % |
+
+La fila que hay que leer dos veces es la del intervalo de confianza del
+recall: **con 179 filas, un IC de 52 puntos porcentuales significa que
+"recall 0.17" y "recall 0.69" son, con esta muestra, estadísticamente
+indistinguibles — no sirve para decidir nada en producción. Con 10 000 filas,
+el mismo cálculo de Wilson da un intervalo de 8 puntos: sí es accionable.**
+No es que `ai4i2020` tenga "mejores datos" en un sentido abstracto — tiene
+34 veces más positivos, y eso es, literalmente, lo único que estrecha un
+intervalo de Wilson.
+
+La fila de accuracy del dummy es la misma advertencia de siempre, en los dos
+datasets: en `ai4i2020`, no predecir nunca un fallo ya acierta el 96.61 % de
+las veces — un número más alto que en `lab180`, no más bajo, porque la
+prevalencia real (3.39 %) es menor. La accuracy miente más cuanto más
+desbalanceada está la clase, y eso no depende de cuántas filas haya.
+
+![Curvas PR de ambos datasets en el mismo eje](reports/figures/comparacion_pr.png)
+*La curva de `lab180` (naranja) es dentada porque cada uno de sus 10
+positivos mueve la curva de un salto; la de `ai4i2020` (azul) es suave y se
+mantiene muy por encima de su propia línea de azar en casi todo el rango de
+recall. Ambas son predicciones out-of-fold de un único `StratifiedKFold(5)`,
+calculadas con el mismo código.*
+
 ## En construcción
 
-Esto cubre las Fases 1 a 4 (andamiaje + EDA + contrato de datos + auditor de
-plausibilidad + modelado con validación honesta + calibración + umbral por
-coste + explicabilidad + límites estadísticos). Ver también
-[`MODEL_CARD.md`](MODEL_CARD.md) y el anexo académico en
-[`notebooks/00_lab_original.ipynb`](notebooks/00_lab_original.ipynb). Todavía
-falta el segundo dataset (`ai4i2020`, físicamente acoplado y con ~339
-positivos — la contraparte de `lab180` como contraejemplo) y el empaquetado
-final: Docker, CI, dashboard. Nada de lo que sigue está escrito todavía a
-propósito — no hay número que reportar sin haberlo medido.
+Esto cubre las Fases 1 a 5, Bloque A (andamiaje + EDA + contrato de datos +
+auditor de plausibilidad + modelado con validación honesta + calibración +
+umbral por coste + explicabilidad + límites estadísticos + segundo dataset).
+Ver también [`MODEL_CARD.md`](MODEL_CARD.md) y el anexo académico en
+[`notebooks/00_lab_original.ipynb`](notebooks/00_lab_original.ipynb). Falta el
+empaquetado final del Bloque B: Docker, CI, dashboard, informe HTML y el
+README definitivo (con badges, diagrama del pipeline y enlaces al dashboard
+en vivo). Nada de lo que sigue está escrito todavía a propósito — no hay
+número que reportar sin haberlo medido.
 
 ## Desarrollo
 

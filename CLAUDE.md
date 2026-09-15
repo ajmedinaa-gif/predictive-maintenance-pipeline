@@ -489,38 +489,121 @@ la prevalencia actual"*.
 | | lab180 | ai4i2020 |
 |---|---|---|
 | origen | laboratorio, **simulado** | UCI id=601, Matzka (2020) |
-| n | 180 | ~10 000 |
-| positivos | 10 (5.5556 %) | ~339 (~3.4 %) — **verificar al descargar** |
-| variables | 5, mutuamente independientes | 6 + `Type`, físicamente acopladas |
-| modos de fallo | no etiquetados | 5: TWF, HDF, PWF, OSF, RNF |
+| n | 180 (179 validadas) | **10 000** (medido) |
+| positivos | 10 (5.5556 %) | **339 (3.39 %)** (medido, `pdm-cli download --dataset ai4i2020`) |
+| variables | 5, mutuamente independientes | 6 + `type`, físicamente acopladas |
+| modos de fallo | no etiquetados | 5: **TWF=46, HDF=115, PWF=95, OSF=98, RNF=19** (medido) |
 | papel en el repo | **contraejemplo**: qué NO se puede concluir con pocos datos | demostración de que el pipeline es una abstracción |
 
-`lab180` **no se presenta como resultado principal.**
+`lab180` **no se presenta como resultado principal.** La tabla de la izquierda
+ya no dice "verificar al descargar": se verificó en la Fase 5 y los números de
+arriba son los reales, no una estimación previa.
 
-`ai4i2020`: descarga con `ucimlrepo.fetch_ucirepo(id=601)`. Features `Type`
-(L/M/H), `Air temperature [K]`, `Process temperature [K]`,
-`Rotational speed [rpm]`, `Torque [Nm]`, `Tool wear [min]`; target
-`Machine failure`. **Verificar las cifras al descargar y corregir esta tabla si
-difieren; decirlo en el checkpoint.**
+`ai4i2020`: descarga con `ucimlrepo.fetch_ucirepo(id=601)` vía
+`AI4I2020Adapter.download()` (`pdm-cli download --dataset ai4i2020`), sin
+nulos. Columnas crudas renombradas a snake_case: `type` (L/M/H),
+`air_temperature_k`, `process_temperature_k`, `rotational_speed_rpm`,
+`torque_nm`, `tool_wear_min`; objetivo `machine_failure` (0/1 en el CSV
+crudo). Rangos medidos: temperaturas 295.3-304.5 K (aire) y 305.7-313.8 K
+(proceso) — dentro del rango plausible declarado (280-320 K); velocidad
+1168-2886 rpm; par 3.8-76.6 Nm; desgaste 0-253 min.
+
+**`positive_label` de `ai4i2020` es `"yes"`/`"no"`, NUNCA `"1"`/`"0"`.**
+Hallazgo de la Fase 5: con etiquetas que son dígitos puros,
+`RandomForestClassifier(class_weight="balanced")` dispara una recursión
+interna de scikit-learn que reinterpreta las clases como enteros al recalcular
+pesos por bootstrap y no encuentra la clase en el diccionario que ella misma
+generó (`ValueError: The classes, [0, 1], are not in class_weight`) —
+reproducible con un `RandomForestClassifier` plano, sin este proyecto de por
+medio. `AI4I2020Adapter.engineer_features` remapea `machine_failure` de
+`{0, 1}` a `{"no", "yes"}`: mismo vocabulario que `lab180`, evita el problema
+de raíz y mantiene los informes de ambos datasets consistentes.
 
 Ventaja decisiva sobre `lab180`: las features están **físicamente acopladas**, lo
-que permite feature engineering con sentido ingenieril real, y ~339 positivos
-permiten estimar el recall con intervalos de confianza útiles.
+que permite feature engineering con sentido ingenieril real, y 339 positivos
+permiten estimar el recall con intervalos de confianza útiles (§13.2).
 
-Features derivadas, con justificación física en el docstring:
+Features derivadas, con justificación física en el docstring
+(`AI4I2020Adapter.engineer_features`):
 - `power_w = torque_nm * rotational_speed_rpm * 2*pi/60` (potencia mecánica)
 - `temp_delta_k = process_temperature_k - air_temperature_k` (disipación térmica)
 - `wear_x_torque = tool_wear_min * torque_nm` (sobreesfuerzo acumulado)
+- `type_L`, `type_M`, `type_H`: one-hot de la categoría de calidad del
+  producto (tres categorías fijas, no un ajuste estadístico)
+
+**Verificado (Fase 5): `power_w` y `temp_delta_k` sí correlacionan con sus
+modos de fallo respectivos, pero no de forma lineal simple — y eso también es
+un hallazgo, no un problema:**
+
+- **`temp_delta_k` vs `HDF`**: correlación de Pearson `r = -0.191`, y la
+  relación es más fuerte de lo que ese número sugiere: **las 115 filas con
+  `HDF=1` tienen `temp_delta_k` entre 7.6 y 8.6 K, frente a una media general
+  de 10.0 K** (mecanismo real de AI4I2020: HDF se dispara cuando el delta de
+  temperatura cae por debajo de 8.6 K con velocidad de rotación baja) — la
+  dirección es la esperada (delta bajo → más HDF).
+- **`power_w` vs `PWF`**: correlación de Pearson directa débil (`r = 0.089`)
+  porque la relación NO es monótona — PWF se dispara tanto con potencia
+  anormalmente baja como anormalmente alta (mecanismo real: fallo fuera de
+  [3500, 9000] W). Redefiniendo la señal como distancia a la media
+  (`|power_w - media|`), la correlación con `PWF` sube a `r = 0.353`: la
+  dispersión de `power_w` en las filas con `PWF=1` (desv. típica 3087 W) es
+  casi 3 veces la del dataset completo (1067 W). **No se fuerza una
+  correlación lineal donde el mecanismo físico es en forma de U.**
+
+`plausibility.audit()` sobre `ai4i2020` dictamina **"compatible con datos
+reales"** (frente a "probablemente sintético" de `lab180`) — la correlación
+máxima entre atributos es 0.8761 (entre `air_temperature_k` y
+`process_temperature_k`, muy por encima del umbral de 0.15), confirmando que
+las features están físicamente acopladas y validando el auditor por
+comparación directa (CLAUDE.md §12, extra 1).
 
 ### 13.1 El mismo pipeline debe correr sobre ambos
 
 Es la prueba de que el código es una abstracción y no un script. Un
-`DatasetAdapter` por dataset, todo lo demás compartido:
+`DatasetAdapter` por dataset (`datasets.py`: protocolo `DatasetAdapter` +
+`Lab180Adapter` + `AI4I2020Adapter`), todo lo demás compartido —
+`pipeline.py` no cambia una sola línea entre datasets porque
+`engineer_features` ya entrega una matriz enteramente numérica:
 
 ```
+pdm-cli download --dataset ai4i2020   # paso explícito, una sola vez
 pdm-cli run --dataset lab180
 pdm-cli run --dataset ai4i2020
+pdm-cli compare                        # tabla + figura de la §13.2
 ```
+
+### 13.2 Medido (Fase 5): la tabla comparativa
+
+`pdm-cli run` (contrato + zoo de modelos) y `pdm-cli calibrate` ya se
+ejecutaron sobre ambos datasets; `pdm-cli compare` lee sus
+`reports/metrics_*.json` y `reports/calibration_*.json` y escribe
+`reports/comparison.json` — la fuente de la tabla del README, ningún número
+a mano:
+
+| | lab180 (179 filas) | ai4i2020 (10 000 filas) |
+|---|---|---|
+| positivos | 10 (5.59 %) | 339 (3.39 %) |
+| accuracy del dummy | 94.41 % | 96.61 % |
+| mejor modelo (por PR-AUC) | `logistic_plain` | `gradient_boosting` |
+| PR-AUC del mejor modelo | 0.7153 | 0.9108 |
+| recall del mejor modelo (TP/positivos) | 4/10 | 277/339 |
+| **IC de Wilson del recall** | **[0.168, 0.687] — 52 pp de ancho** | **[0.772, 0.855] — 8 pp de ancho** |
+| umbral óptimo (`logistic_plain` + Platt) | 0.141 | 0.084 |
+| ahorro del umbral empírico sobre t=0.5 | 64.7 % | 40.7 % |
+
+**La conclusión salta a la vista en la fila del IC de Wilson: con 179 filas,
+un intervalo de 52 puntos porcentuales hace que "recall 0.17" y "recall 0.69"
+sean estadísticamente indistinguibles — inútil para decidir nada en
+producción. Con 10 000 filas, el mismo cálculo da un intervalo de 8 puntos:
+accionable.** La fila del umbral óptimo usa siempre `logistic_plain` + Platt
+—la decisión fija del proyecto (§9.2)— en los dos datasets, no el modelo de
+mejor PR-AUC de cada uno: es la comparación metodológicamente correcta,
+porque es la misma ruta de decisión económica aplicada dos veces.
+
+La figura `reports/figures/comparacion_pr.png` pone las curvas PR de ambos
+"mejores modelos" en el mismo eje: la de `lab180` es dentada (10 positivos,
+cada uno mueve la curva) y la de `ai4i2020` es suave y muy por encima de su
+propia línea de azar.
 
 ## 14. Entorno de desarrollo: macOS Intel
 

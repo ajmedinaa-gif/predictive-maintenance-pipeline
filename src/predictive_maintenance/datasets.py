@@ -291,11 +291,24 @@ def load(name: str) -> pd.DataFrame:
     ninguna fila: eso ocurre después del contrato de datos y, en el caso de
     la ingeniería de features, dentro de `adapter.engineer_features`
     (CLAUDE.md §2.6, §2.9).
+
+    Única excepción, y solo la columna objetivo: se reetiqueta con
+    `adapter.engineer_features` a los mismos valores canónicos que usa
+    `spec.positive_label` (para `lab180` no cambia nada -- ya es "yes"/"no";
+    para `ai4i2020` pasa de `{0, 1}` a `{"no", "yes"}`, ver el comentario de
+    `AI4I2020Adapter.positive_label`). Sin esto, EDA y el auditor de
+    plausibilidad -- que leen `datasets.load()` -- buscarían `"yes"` en una
+    columna que todavía tiene `0`/`1` y no encontrarían ningún positivo. El
+    contrato de datos (`data.load_validated`) no pasa por aquí: lee el CSV
+    directamente y valida los enteros crudos.
     """
     spec = get_spec(name)
+    adapter = get_adapter(name)
     if not spec.path.exists():
         raise FileNotFoundError(
             f"No encuentro {spec.path}. El dataset {name!r} debe estar en data/raw/ "
             f"(usa `pdm-cli download --dataset {name}` si aplica)."
         )
-    return pd.read_csv(spec.path)
+    df = pd.read_csv(spec.path)
+    df[spec.target] = adapter.engineer_features(df)[spec.target]
+    return df
