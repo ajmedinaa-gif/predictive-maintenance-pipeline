@@ -79,11 +79,16 @@ class EvalConfig:
         return cls(n_splits=esquema.n_splits, n_repeats=esquema.n_repeats, seed=settings.seed)
 
 
-def _binarize(y, positive_label: str) -> np.ndarray:
+def binarize(y, positive_label: str) -> np.ndarray:
+    """`y` (etiquetas de texto) a `{0, 1}`, con `1 = positive_label`.
+
+    Reutilizada por `calibration.py`.
+    """
     return (pd.Series(y).astype(str).to_numpy() == positive_label).astype(int)
 
 
-def _positive_column(modelo, positive_label: str) -> int:
+def positive_column(modelo, positive_label: str) -> int:
+    """Índice de la clase positiva en `modelo.classes_`, para indexar `predict_proba`."""
     clases = list(modelo.classes_)
     if positive_label not in clases:
         raise ValueError(f"La clase positiva {positive_label!r} no aparece en classes_={clases}")
@@ -122,9 +127,9 @@ def cross_validate_model(
         modelo = clone(pipe)
         modelo.fit(X.iloc[train_idx], y.iloc[train_idx])
 
-        y_test_bin = _binarize(y.iloc[test_idx], positive_label)
-        y_pred_bin = _binarize(modelo.predict(X.iloc[test_idx]), positive_label)
-        idx_pos = _positive_column(modelo, positive_label)
+        y_test_bin = binarize(y.iloc[test_idx], positive_label)
+        y_pred_bin = binarize(modelo.predict(X.iloc[test_idx]), positive_label)
+        idx_pos = positive_column(modelo, positive_label)
         y_score = modelo.predict_proba(X.iloc[test_idx])[:, idx_pos]
 
         fila = {"fold": fold_id, "n_test": len(test_idx), "n_positivos_test": int(y_test_bin.sum())}
@@ -185,16 +190,16 @@ def out_of_fold_predictions(
     Devuelve `(y_true_bin, y_score, y_pred_bin)`.
     """
     splitter = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=seed)
-    y_true_bin = _binarize(y, positive_label)
+    y_true_bin = binarize(y, positive_label)
     y_score = np.empty(len(y_true_bin), dtype=float)
     y_pred_bin = np.empty(len(y_true_bin), dtype=int)
 
     for train_idx, test_idx in splitter.split(X, y):
         modelo = clone(pipe)
         modelo.fit(X.iloc[train_idx], y.iloc[train_idx])
-        idx_pos = _positive_column(modelo, positive_label)
+        idx_pos = positive_column(modelo, positive_label)
         y_score[test_idx] = modelo.predict_proba(X.iloc[test_idx])[:, idx_pos]
-        y_pred_bin[test_idx] = _binarize(modelo.predict(X.iloc[test_idx]), positive_label)
+        y_pred_bin[test_idx] = binarize(modelo.predict(X.iloc[test_idx]), positive_label)
 
     return y_true_bin, y_score, y_pred_bin
 
@@ -258,7 +263,7 @@ def nested_cv(
     los scorers de scikit-learn como `"average_precision"` o `"roc_auc"`
     asumen `pos_label=1` y fallan con etiquetas de texto como `"yes"/"no"`.
     """
-    y_bin_completo = _binarize(y, positive_label)
+    y_bin_completo = binarize(y, positive_label)
     splitter_externo = RepeatedStratifiedKFold(
         n_splits=cfg.n_splits, n_repeats=cfg.n_repeats, random_state=cfg.seed
     )
