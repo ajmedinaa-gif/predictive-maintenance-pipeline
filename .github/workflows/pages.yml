@@ -1,0 +1,102 @@
+name: Pages
+
+# Publica los informes HTML autocontenidos (CLAUDE.md §15, Fase 5 Bloque B)
+# en GitHub Pages. `lab180` se reconstruye en cada push a main -- no necesita
+# red (dataset versionado, CLAUDE.md §7). `ai4i2020` requiere una descarga
+# externa (CLAUDE.md §2.11) y solo se reconstruye en un disparo manual
+# (`workflow_dispatch`), igual que el job equivalente de `ci.yml`.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Instalar dependencias
+        run: uv sync --frozen
+
+      - name: Generar el informe de lab180
+        run: |
+          uv run pdm-cli run --dataset lab180
+          uv run pdm-cli calibrate --dataset lab180
+          uv run pdm-cli explain --dataset lab180
+          uv run pdm-cli limits --dataset lab180
+          uv run pdm-cli report --dataset lab180
+
+      - name: Generar el informe de ai4i2020 (solo en disparo manual)
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          uv run pdm-cli download --dataset ai4i2020
+          uv run pdm-cli run --dataset ai4i2020
+          uv run pdm-cli calibrate --dataset ai4i2020
+          uv run pdm-cli explain --dataset ai4i2020
+          uv run pdm-cli limits --dataset ai4i2020
+          uv run pdm-cli compare
+          uv run pdm-cli report --dataset ai4i2020
+
+      - name: Ensamblar el sitio
+        run: |
+          mkdir -p site
+          cp reports/report_lab180.html site/lab180.html
+          TIENE_AI4I2020=false
+          if [ -f reports/report_ai4i2020.html ]; then
+            cp reports/report_ai4i2020.html site/ai4i2020.html
+            TIENE_AI4I2020=true
+          fi
+          if [ -f reports/figures/comparacion_pr.png ]; then
+            cp reports/figures/comparacion_pr.png site/comparacion_pr.png
+          fi
+          cat > site/index.html <<HTML
+          <!doctype html>
+          <html lang="es"><head><meta charset="utf-8">
+          <title>predictive-maintenance-pipeline — informes</title>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>
+            body { font: 16px/1.6 -apple-system, sans-serif; max-width: 720px; margin: 60px auto; padding: 0 20px; color: #1a1d23; }
+            a { color: #2a78d6; }
+            li { margin: 10px 0; }
+          </style></head>
+          <body>
+          <h1>predictive-maintenance-pipeline</h1>
+          <p>Pipeline reproducible de mantenimiento predictivo con validación honesta bajo desbalance de clases.</p>
+          <ul>
+            <li><a href="lab180.html">Informe: lab180</a> (datos simulados, contraejemplo)</li>
+          $( [ "$TIENE_AI4I2020" = true ] && echo '  <li><a href="ai4i2020.html">Informe: ai4i2020</a> (datos reales, UCI id=601)</li>' )
+          </ul>
+          <p><a href="https://github.com/ajmedinaa-gif/predictive-maintenance-pipeline">Repositorio en GitHub</a></p>
+          </body></html>
+          HTML
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

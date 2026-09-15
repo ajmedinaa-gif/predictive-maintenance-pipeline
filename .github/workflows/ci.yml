@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: {}
+
+# Cancela una corrida en curso si llega un push nuevo a la misma rama/PR.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: lint + test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Fijar Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Instalar dependencias
+        run: uv sync --python ${{ matrix.python-version }} --frozen
+
+      - name: ruff check
+        run: uv run --python ${{ matrix.python-version }} ruff check .
+
+      - name: ruff format --check
+        run: uv run --python ${{ matrix.python-version }} ruff format --check .
+
+      - name: pytest (con cobertura, objetivo 80 %)
+        run: uv run --python ${{ matrix.python-version }} pytest --cov-report=xml
+
+      - name: Subir cobertura como artefacto
+        if: matrix.python-version == '3.11'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          retention-days: 14
+
+  docker:
+    name: build de la imagen Docker
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Construir la imagen
+        run: docker build -t predictive-maintenance-pipeline:ci .
+
+      - name: Tamaño de la imagen (medido, no estimado -- CLAUDE.md regla dura 8)
+        run: |
+          SIZE_BYTES=$(docker image inspect predictive-maintenance-pipeline:ci --format='{{.Size}}')
+          SIZE_MB=$(( SIZE_BYTES / 1024 / 1024 ))
+          echo "## Tamaño de la imagen Docker" >> "$GITHUB_STEP_SUMMARY"
+          echo "${SIZE_BYTES} bytes (~${SIZE_MB} MiB)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tamaño de la imagen: ${SIZE_BYTES} bytes (~${SIZE_MB} MiB)"
+          docker images predictive-maintenance-pipeline:ci
+
+      - name: Verificar que el contenedor arranca (pdm-cli version)
+        run: docker run --rm predictive-maintenance-pipeline:ci version
+
+  pipeline:
+    name: pipeline completo sobre lab180
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Instalar dependencias
+        run: uv sync --frozen
+
+      # Solo lab180: viene versionado en el repo, sin descarga externa
+      # (CLAUDE.md §2.11). ai4i2020 corre aparte, manual (job de abajo):
+      # requiere red y no debe bloquear cada push/PR.
+      - name: pdm-cli run --dataset lab180
+        run: uv run pdm-cli run --dataset lab180
+
+      - name: pdm-cli calibrate --dataset lab180
+        run: uv run pdm-cli calibrate --dataset lab180
+
+      - name: pdm-cli explain --dataset lab180
+        run: uv run pdm-cli explain --dataset lab180
+
+      - name: pdm-cli limits --dataset lab180
+        run: uv run pdm-cli limits --dataset lab180
+
+      - name: pdm-cli report --dataset lab180
+        run: uv run pdm-cli report --dataset lab180
+
+      - name: Verificar que reports/metrics_lab180.json tiene las claves esperadas
+        run: |
+          python3 -c "
+          import json, sys
+          with open('reports/metrics_lab180.json') as fh:
+              informe = json.load(fh)
+          claves_esperadas = {
+              'dataset', 'n_filas_entrenamiento', 'n_positivos',
+              'protocolo_principal', 'protocolo_matriz_confusion', 'modelos',
+          }
+          faltantes = claves_esperadas - set(informe)
+          if faltantes:
+              sys.exit(f'Faltan claves en metrics_lab180.json: {faltantes}')
+          if list(informe['modelos'])[0] != 'dummy_most_frequent':
+              sys.exit('dummy_most_frequent debe ir primero (CLAUDE.md regla dura 1)')
+          print('reports/metrics_lab180.json: OK')
+          "
+
+  ai4i2020:
+    name: pipeline completo sobre ai4i2020 (manual, descarga externa)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
+      - name: Instalar dependencias
+        run: uv sync --frozen
+
+      - name: pdm-cli download --dataset ai4i2020
+        run: uv run pdm-cli download --dataset ai4i2020
+
+      - name: pdm-cli run --dataset ai4i2020
+        run: uv run pdm-cli run --dataset ai4i2020
+
+      - name: pdm-cli calibrate --dataset ai4i2020
+        run: uv run pdm-cli calibrate --dataset ai4i2020
+
+      - name: pdm-cli explain --dataset ai4i2020
+        run: uv run pdm-cli explain --dataset ai4i2020
+
+      - name: pdm-cli limits --dataset ai4i2020
+        run: uv run pdm-cli limits --dataset ai4i2020
+
+      - name: pdm-cli compare
+        run: uv run pdm-cli compare
+
+      - name: pdm-cli report --dataset ai4i2020
+        run: uv run pdm-cli report --dataset ai4i2020
