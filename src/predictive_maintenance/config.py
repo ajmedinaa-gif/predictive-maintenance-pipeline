@@ -108,3 +108,32 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Instancia única y cacheada de `Settings`, leída de `config/default.yaml`."""
     return Settings.from_yaml()
+
+
+class CostSettings(BaseModel):
+    """Matriz de coste del umbral de decisión (CLAUDE.md §9.1).
+
+    SUPUESTOS declarados y configurables, **no medidos en campo** — ver los
+    comentarios de `config/costs.yaml`. En CLP, no euros.
+    """
+
+    cost_false_negative: float
+    cost_false_positive: float
+    cost_true_positive: float
+    cost_true_negative: float
+
+    def as_dict(self) -> dict[str, float]:
+        """Vista en `dict` con las mismas claves, para `threshold.py`."""
+        return self.model_dump()
+
+
+DEFAULT_COSTS_PATH = CONFIG_DIR / "costs.yaml"
+
+
+@lru_cache(maxsize=1)
+def get_costs(path: Path | None = None) -> CostSettings:
+    """Instancia única y cacheada de `CostSettings`, leída de `config/costs.yaml`."""
+    ruta = path if path is not None else DEFAULT_COSTS_PATH
+    with ruta.open(encoding="utf-8") as fh:
+        crudo = yaml.safe_load(fh)
+    return CostSettings(**crudo)

@@ -1,0 +1,13 @@
+# Matriz de coste para el umbral de decisión (CLAUDE.md §9.1).
+#
+# SUPUESTOS declarados, configurables, NO medidos en campo: son estimaciones
+# de orden de magnitud para poder demostrar el procedimiento (calibrar +
+# optimizar umbral), no una tarifa real de mantenimiento. Cambiar estos
+# valores cambia el umbral óptimo t* — es la pestaña "Decisión" del dashboard
+# de la Fase 5 (CLAUDE.md §12, extra 4).
+#
+# Moneda: CLP (pesos chilenos), NO euros.
+cost_false_negative: 10000000 # parada no planificada, daño al equipo
+cost_false_positive: 500000 # inspección innecesaria de un equipo sano
+cost_true_positive: 1500000 # mantenimiento planificado: también cuesta, no es gratis
+cost_true_negative: 0 # no pasa nada: es el punto de referencia en 0
