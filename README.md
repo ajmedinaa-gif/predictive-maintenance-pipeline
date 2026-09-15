@@ -10,14 +10,16 @@ dos datasets de tamaño radicalmente distinto, demostrando que la métrica
 ingenua —la accuracy— miente en ambos. El repo no vende un modelo. Vende
 criterio.
 
-**Dashboard en vivo:** por desplegar en Streamlit Community Cloud (ver
-[§ Quickstart](#quickstart) para levantarlo en local mientras tanto; las
-instrucciones de despliegue exacto están en [§ Streamlit Community
-Cloud](#desplegar-el-dashboard-en-streamlit-community-cloud)).
-**Informe HTML:** se publica automáticamente en cada push a `main` vía
-GitHub Pages una vez activado en *Settings → Pages* del repositorio, en
-`https://ajmedinaa-gif.github.io/predictive-maintenance-pipeline/`.
-**Model card:** [`MODEL_CARD.md`](MODEL_CARD.md).
+**Dashboard en vivo:** [predictive-maintenance-pipeline.streamlit.app](https://predictive-maintenance-pipeline-by4jyxfusgbofvxtkszjxg.streamlit.app/)
+*En el plan gratuito de Streamlit Community Cloud la app se duerme tras varios
+días sin visitas: la primera carga puede tardar un minuto mientras despierta.*
+
+**Informes HTML:** [ajmedinaa-gif.github.io/predictive-maintenance-pipeline](https://ajmedinaa-gif.github.io/predictive-maintenance-pipeline/)
+— [`lab180.html`](https://ajmedinaa-gif.github.io/predictive-maintenance-pipeline/lab180.html)
+(simulado, contraejemplo) · [`ai4i2020.html`](https://ajmedinaa-gif.github.io/predictive-maintenance-pipeline/ai4i2020.html)
+(real, UCI id=601)
+
+**Model card:** [`MODEL_CARD.md`](MODEL_CARD.md)
 
 ## Resultado principal
 
