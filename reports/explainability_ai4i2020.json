@@ -1,0 +1,5801 @@
+{
+  "dataset": "ai4i2020",
+  "n_filas": 10000,
+  "shap_importancia_media": {
+    "torque_nm": 4.410503471258075,
+    "power_w": 2.0498786146793995,
+    "rotational_speed_rpm": 1.7061977082897364,
+    "tool_wear_min": 0.7390754780779415,
+    "temp_delta_k": 0.5659462389591885,
+    "air_temperature_k": 0.20148876081559905,
+    "type_L": 0.10733175962136142,
+    "process_temperature_k": 0.10353450910207652,
+    "type_H": 0.05331040135719231,
+    "type_M": 0.05193693082662742,
+    "wear_x_torque": 0.010377334383440644
+  },
+  "shap_casos_positivos": [
+    {
+      "fila": 50,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -18.012862689092305
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 15.679444573838799
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 11.072630856987427
+        }
+      ]
+    },
+    {
+      "fila": 69,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.039750389877602
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.620429945419142
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.06570130253501
+        }
+      ]
+    },
+    {
+      "fila": 77,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 1.8403435301907622
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.5153694180161812
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.3122424701388038
+        }
+      ]
+    },
+    {
+      "fila": 160,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.334953902236856
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.948355167656888
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.631089774055236
+        }
+      ]
+    },
+    {
+      "fila": 161,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.790895803000401
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.9646982232885724
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.041242107667507
+        }
+      ]
+    },
+    {
+      "fila": 168,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.20048877828189
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.787599738427273
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.7844205615587199
+        }
+      ]
+    },
+    {
+      "fila": 194,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -14.713010974170597
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.441428243462227
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 7.233449866498583
+        }
+      ]
+    },
+    {
+      "fila": 207,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.334953902236856
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.038991657333628
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.9311757307637412
+        }
+      ]
+    },
+    {
+      "fila": 242,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.30713123693337
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.306404511354855
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.82393634342762
+        }
+      ]
+    },
+    {
+      "fila": 248,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.225212641877071
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.835414758758934
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6527219793550953
+        }
+      ]
+    },
+    {
+      "fila": 249,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.900637063360186
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.231722108454809
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.126849289703769
+        }
+      ]
+    },
+    {
+      "fila": 259,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.066023654326932
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.149886205846515
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.9434053281974928
+        }
+      ]
+    },
+    {
+      "fila": 327,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.171116712124261
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.956209952567076
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5181964075838255
+        }
+      ]
+    },
+    {
+      "fila": 380,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.576996449361483
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 12.047254136014525
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.201524401609604
+        }
+      ]
+    },
+    {
+      "fila": 442,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.767721340259374
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.985420537536051
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.2002268743062796
+        }
+      ]
+    },
+    {
+      "fila": 463,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -18.229246408103563
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 15.838429340477573
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 11.342666964089188
+        }
+      ]
+    },
+    {
+      "fila": 586,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.438497559180029
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.188249861962837
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.5002428240268846
+        }
+      ]
+    },
+    {
+      "fila": 603,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 18.231410245293677
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -9.368889355505019
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.970691512632641
+        }
+      ]
+    },
+    {
+      "fila": 746,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.03820098902345
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.4688523658381705
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.545482592018974
+        }
+      ]
+    },
+    {
+      "fila": 847,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -17.471903391564158
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 15.337015845693749
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 10.402570624995692
+        }
+      ]
+    },
+    {
+      "fila": 880,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 20.719823013923165
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.984673914440608
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.2058808534415695
+        }
+      ]
+    },
+    {
+      "fila": 903,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -12.603269713810816
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 8.451752490491506
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.121539399432646
+        }
+      ]
+    },
+    {
+      "fila": 926,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.576061484843295
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.568203400804685
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5304260050175778
+        }
+      ]
+    },
+    {
+      "fila": 1016,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.446244563450787
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.988751611931781
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.1785946690064213
+        }
+      ]
+    },
+    {
+      "fila": 1085,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.008828922865813
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.021848202494822
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.3714412383788046
+        }
+      ]
+    },
+    {
+      "fila": 1087,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.2853852767262206
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": -1.1349326062140577
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": -0.7290840375756628
+        }
+      ]
+    },
+    {
+      "fila": 1095,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -15.470353990710006
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.967300933113552
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 8.063356210337764
+        }
+      ]
+    },
+    {
+      "fila": 1123,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.20048877828189
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.062060442038325
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.3592116409450528
+        }
+      ]
+    },
+    {
+      "fila": 1124,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.82491607172049
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.174604394915569
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.9246001124652787
+        }
+      ]
+    },
+    {
+      "fila": 1144,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.879012001473306
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.856409636520646
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.4598754099827116
+        }
+      ]
+    },
+    {
+      "fila": 1161,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.60543355100093
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.622776415876359
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.215283461307677
+        }
+      ]
+    },
+    {
+      "fila": 1162,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.38750043113552
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.474303636122845
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.187997276872528
+        }
+      ]
+    },
+    {
+      "fila": 1167,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.899087662506032
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.384237051975862
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6527219793550953
+        }
+      ]
+    },
+    {
+      "fila": 1284,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -12.224598205541112
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 7.02088959074255
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.1713689655348345
+        }
+      ]
+    },
+    {
+      "fila": 1324,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 19.800192208125313
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.612129147485662
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.108044073971556
+        }
+      ]
+    },
+    {
+      "fila": 1334,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.059826050910327
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.61603318705384
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.2732929464603915
+        }
+      ]
+    },
+    {
+      "fila": 1335,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.602334749292625
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.9429426991524643
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5426556024513296
+        }
+      ]
+    },
+    {
+      "fila": 1391,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -15.740833639474081
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 14.16297449205358
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 8.365579590620406
+        }
+      ]
+    },
+    {
+      "fila": 1419,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.33185510052855
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.5485680725575186
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.7505587588251097
+        }
+      ]
+    },
+    {
+      "fila": 1437,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.9500847905505467
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.783000741356462
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.7110429769562092
+        }
+      ]
+    },
+    {
+      "fila": 1492,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.144843447674928
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.105100698785962
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.2218590796061388
+        }
+      ]
+    },
+    {
+      "fila": 1496,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 17.041299790731756
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.471252612407069
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.802304138127761
+        }
+      ]
+    },
+    {
+      "fila": 1509,
+      "top_contribuciones": [
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.8333389512937268
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.4733856306143014
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 0.9846339606743315
+        }
+      ]
+    },
+    {
+      "fila": 1583,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.4972416914953
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.466870085734656
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.288661045910187
+        }
+      ]
+    },
+    {
+      "fila": 1595,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.115471381517292
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.5585538085789907
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.61603318705384
+        }
+      ]
+    },
+    {
+      "fila": 1682,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.540528614145759
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": -0.9726448169556107
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 0.30684059961283183
+        }
+      ]
+    },
+    {
+      "fila": 1763,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -3.7315372343491715
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 2.727132507170697
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.3256710668450953
+        }
+      ]
+    },
+    {
+      "fila": 1784,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -18.44563012711483
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 15.985184509682593
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 11.6162216183747
+        }
+      ]
+    },
+    {
+      "fila": 1789,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.905285265922638
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.56186759163914
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.2519722536089315
+        }
+      ]
+    },
+    {
+      "fila": 1808,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.576996449361483
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 12.08394292831578
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.192009457112719
+        }
+      ]
+    },
+    {
+      "fila": 1833,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.4972416914953
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.723823144153199
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.080757889536407
+        }
+      ]
+    },
+    {
+      "fila": 1996,
+      "top_contribuciones": [
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.9923237179325
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.177956503075889
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 0.9306416063547542
+        }
+      ]
+    },
+    {
+      "fila": 2015,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.364325968394489
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.039388113354333
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.398727422813953
+        }
+      ]
+    },
+    {
+      "fila": 2075,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.30713123693337
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.918334379310921
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.3102932512100463
+        }
+      ]
+    },
+    {
+      "fila": 2125,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 17.041299790731756
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.29928981342687
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.9246001124652787
+        }
+      ]
+    },
+    {
+      "fila": 2166,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -7.842827895563105
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 3.523224724689545
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 3.5084482099723893
+        }
+      ]
+    },
+    {
+      "fila": 2233,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.468804589855853
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 11.863810174508249
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.122778324497346
+        }
+      ]
+    },
+    {
+      "fila": 2244,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.2450994866073464
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -0.4513944412797776
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": 0.4510879656943054
+        }
+      ]
+    },
+    {
+      "fila": 2299,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.525064356798783
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.203259097633739
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.625435794919947
+        }
+      ]
+    },
+    {
+      "fila": 2331,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.494142889786998
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.047656645620812
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.3836708358125565
+        }
+      ]
+    },
+    {
+      "fila": 2332,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.763073137696919
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.8753361924001557
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.457048420415067
+        }
+      ]
+    },
+    {
+      "fila": 2426,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.903735865068487
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.287891702831632
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5304260050175778
+        }
+      ]
+    },
+    {
+      "fila": 2444,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.392148633697975
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.077323998835414
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.814533735561513
+        }
+      ]
+    },
+    {
+      "fila": 2494,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.494142889786998
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.317186427474361
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.0562986946689037
+        }
+      ]
+    },
+    {
+      "fila": 2502,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.951634191404696
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.023150707841067
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.5808144042646335
+        }
+      ]
+    },
+    {
+      "fila": 2581,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.334953902236856
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.895909835639869
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.8606251357288754
+        }
+      ]
+    },
+    {
+      "fila": 2598,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.01347712542827
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.744014354651164
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.1663650715726694
+        }
+      ]
+    },
+    {
+      "fila": 2671,
+      "top_contribuciones": [
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.2002268743062796
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": 2.164919108707652
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.4868142273205929
+        }
+      ]
+    },
+    {
+      "fila": 2749,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -4.867551759158285
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 2.2673674156609485
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 1.2974379917467247
+        }
+      ]
+    },
+    {
+      "fila": 2761,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.715174811360708
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.620284542468
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.423186617681457
+        }
+      ]
+    },
+    {
+      "fila": 2858,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.358128364977883
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.7486049135037978
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.980094120498748
+        }
+      ]
+    },
+    {
+      "fila": 2864,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.248387104618104
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4325892255475634
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.9428716317052044
+        }
+      ]
+    },
+    {
+      "fila": 2879,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.68735214605723
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.073607223641319
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5915739921863366
+        }
+      ]
+    },
+    {
+      "fila": 2941,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -9.79028136666444
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 5.100842793643523
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 4.540968358892421
+        }
+      ]
+    },
+    {
+      "fila": 3000,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 18.88056140232746
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -9.54967330094588
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.1174466818376625
+        }
+      ]
+    },
+    {
+      "fila": 3019,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.818718468303887
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.18626758185932
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4448188229813153
+        }
+      ]
+    },
+    {
+      "fila": 3140,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.576996449361483
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 12.035024538580773
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.204696049775233
+        }
+      ]
+    },
+    {
+      "fila": 3236,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.254584708034708
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.4160849133043385
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.897313928030131
+        }
+      ]
+    },
+    {
+      "fila": 3266,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.225212641877071
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.7900745406940093
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.5265152064058767
+        }
+      ]
+    },
+    {
+      "fila": 3350,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.362776567540338
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.59844392760567
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.5944009817539815
+        }
+      ]
+    },
+    {
+      "fila": 3356,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.766171939405222
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.072644130147474
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.738329161391358
+        }
+      ]
+    },
+    {
+      "fila": 3369,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -16.1736010774966
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 14.44425523302987
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 8.862537212572414
+        }
+      ]
+    },
+    {
+      "fila": 3457,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -14.009763887384004
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 12.964473943545908
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.486774508505873
+        }
+      ]
+    },
+    {
+      "fila": 3528,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.223663241022923
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.797245111543877
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.457048420415067
+        }
+      ]
+    },
+    {
+      "fila": 3529,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.3928140503765525
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -0.8092551975057423
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": 0.5961371458760208
+        }
+      ]
+    },
+    {
+      "fila": 3579,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -14.117955746889631
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.368050658859715
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.521067954296736
+        }
+      ]
+    },
+    {
+      "fila": 3611,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.599235947584322
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.126849289703769
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.8199702652870744
+        }
+      ]
+    },
+    {
+      "fila": 3684,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.82336667086634
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.215428609825706
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.7778449432602574
+        }
+      ]
+    },
+    {
+      "fila": 3695,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.298813873432512
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -0.5981496104847988
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": 0.4510879656942682
+        }
+      ]
+    },
+    {
+      "fila": 3760,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.815619666595581
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4692780178488185
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.6345279616029482
+        }
+      ]
+    },
+    {
+      "fila": 3787,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.0860993153596565
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4692780178488185
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.8051279430119824
+        }
+      ]
+    },
+    {
+      "fila": 3793,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.168017910415955
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.511959470923977
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4448188229813153
+        }
+      ]
+    },
+    {
+      "fila": 3806,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.3009336335167663
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6771811742225986
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": 0.7789135221581732
+        }
+      ]
+    },
+    {
+      "fila": 3814,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.469419026191817
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.084438696763408
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.092987486970159
+        }
+      ]
+    },
+    {
+      "fila": 3829,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.681154542640622
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.603803589620088
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.048527161222721
+        }
+      ]
+    },
+    {
+      "fila": 3854,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.06757305518108
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.078226780104332
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9462323177651375
+        }
+      ]
+    },
+    {
+      "fila": 3865,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -1.8922756227534658
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.5808144042646335
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 0.6125805354566258
+        }
+      ]
+    },
+    {
+      "fila": 3867,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -15.253970271698746
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.82054576390853
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 7.822509177760306
+        }
+      ]
+    },
+    {
+      "fila": 3928,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.84809053446152
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.033267823534722
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.674354184654954
+        }
+      ]
+    },
+    {
+      "fila": 3935,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.392148633697975
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.401366483535716
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.303717632911583
+        }
+      ]
+    },
+    {
+      "fila": 3943,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.58070968740575
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.697207765706846
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.0073803049338967
+        }
+      ]
+    },
+    {
+      "fila": 4002,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.523514955944632
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.994910703531647
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.5275990154499328
+        }
+      ]
+    },
+    {
+      "fila": 4024,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.118570183225593
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.852250116359882
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.7872475511263644
+        }
+      ]
+    },
+    {
+      "fila": 4032,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.708977207944104
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.9035093483714065
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.3959004332463083
+        }
+      ]
+    },
+    {
+      "fila": 4034,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -4.81345582940547
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 2.728619217248335
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.6748145812086739
+        }
+      ]
+    },
+    {
+      "fila": 4044,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.302483034370919
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.438020423062752
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.9556349256312446
+        }
+      ]
+    },
+    {
+      "fila": 4048,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.955667957631187
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.600413010100999
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.265477713449361
+        }
+      ]
+    },
+    {
+      "fila": 4071,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.60853235270923
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.29077676420407
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.0318394998014
+        }
+      ]
+    },
+    {
+      "fila": 4078,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.254584708034708
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.673919242547127
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.4843346048502153
+        }
+      ]
+    },
+    {
+      "fila": 4080,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.874363798910855
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.168536930155167
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.713869966523854
+        }
+      ]
+    },
+    {
+      "fila": 4081,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.982555658416484
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.932942939852031
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.970691512632641
+        }
+      ]
+    },
+    {
+      "fila": 4087,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.19738997657359
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.384644263218899
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.481507615282571
+        }
+      ]
+    },
+    {
+      "fila": 4096,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.466320224483516
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.216734383228575
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.554885199885081
+        }
+      ]
+    },
+    {
+      "fila": 4117,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.630157414596113
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.16054749751617
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9217731228976342
+        }
+      ]
+    },
+    {
+      "fila": 4119,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.8959888607977304
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.10521708440391
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.3122424701388038
+        }
+      ]
+    },
+    {
+      "fila": 4120,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.545140017831507
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.481507615282571
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.4524555340948024
+        }
+      ]
+    },
+    {
+      "fila": 4121,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.356578964123731
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.628262784487592
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.821754317380241
+        }
+      ]
+    },
+    {
+      "fila": 4130,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.470968427045966
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.677685574743813
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.582171384320229
+        }
+      ]
+    },
+    {
+      "fila": 4138,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.549788220393962
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.3125388244534255
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.2764314484764356
+        }
+      ]
+    },
+    {
+      "fila": 4140,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.60543355100093
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.850243057755066
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.0318394998014
+        }
+      ]
+    },
+    {
+      "fila": 4151,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.464770823629363
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5181964075838255
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.996393194500195
+        }
+      ]
+    },
+    {
+      "fila": 4153,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.576061484843295
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.487161594417859
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.363907925692465
+        }
+      ]
+    },
+    {
+      "fila": 4155,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.5173173525280252
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.554885199885081
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": 0.8444786334509243
+        }
+      ]
+    },
+    {
+      "fila": 4157,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.280857972484041
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.631289465099153
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.86345212529652
+        }
+      ]
+    },
+    {
+      "fila": 4164,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.194291174865287
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.8483955382951236
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.50850450402178
+        }
+      ]
+    },
+    {
+      "fila": 4170,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.358128364977883
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.9574273671871034
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.738329161391358
+        }
+      ]
+    },
+    {
+      "fila": 4173,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.113921980663143
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.8483955382951236
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.075486170630568
+        }
+      ]
+    },
+    {
+      "fila": 4179,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.43694815832588
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.8117067459938685
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.075847092927644
+        }
+      ]
+    },
+    {
+      "fila": 4182,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.143294046820774
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.160448383510993
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6527219793550953
+        }
+      ]
+    },
+    {
+      "fila": 4184,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.277759170775738
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.251374728037556
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9951507075001444
+        }
+      ]
+    },
+    {
+      "fila": 4185,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.681154542640622
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.82393634342762
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.8326568579495899
+        }
+      ]
+    },
+    {
+      "fila": 4207,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -4.056112812866062
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 1.6031779275905187
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 1.4527741856214451
+        }
+      ]
+    },
+    {
+      "fila": 4211,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.061375451764476
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.23974265617518
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.857495671468493
+        }
+      ]
+    },
+    {
+      "fila": 4225,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.168017910415955
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.689410771656351
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.2676434481653645
+        }
+      ]
+    },
+    {
+      "fila": 4247,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.956282393967152
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.019430664590349
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.567114797318833
+        }
+      ]
+    },
+    {
+      "fila": 4249,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.279308571629889
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.4179961259605935
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.044069097235152
+        }
+      ]
+    },
+    {
+      "fila": 4251,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.52196555509048
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.314174205538831
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.726099563957606
+        }
+      ]
+    },
+    {
+      "fila": 4253,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.789346402146252
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.0562986946689037
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.670655016489569
+        }
+      ]
+    },
+    {
+      "fila": 4254,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.283956774192344
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.300974751514853
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.606630579187733
+        }
+      ]
+    },
+    {
+      "fila": 4258,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.334953902236856
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.17396342193855
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.44764581254896
+        }
+      ]
+    },
+    {
+      "fila": 4270,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.628608013741958
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.0318394998014
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.816066017304963
+        }
+      ]
+    },
+    {
+      "fila": 4279,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.0582766500561736
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6649515767888468
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": 1.1067390786220035
+        }
+      ]
+    },
+    {
+      "fila": 4282,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.735250472393437
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.505966810150074
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.178515179010926
+        }
+      ]
+    },
+    {
+      "fila": 4283,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.4972416914953
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.8296273446784825
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9951507075001444
+        }
+      ]
+    },
+    {
+      "fila": 4285,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.005730121157511
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.2030538638739245
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.6566799417597644
+        }
+      ]
+    },
+    {
+      "fila": 4292,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -12.981941222080522
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 9.699171428734186
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.163960193647934
+        }
+      ]
+    },
+    {
+      "fila": 4296,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -17.36371153205853
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 15.239179066223736
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 10.273672861264423
+        }
+      ]
+    },
+    {
+      "fila": 4307,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.066023654326932
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.6006987712234215
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.9123705150315273
+        }
+      ]
+    },
+    {
+      "fila": 4323,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.8171690674497345
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9095435254638824
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.446494670505291
+        }
+      ]
+    },
+    {
+      "fila": 4326,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.684253344348923
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.497931571134963
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6527219793550953
+        }
+      ]
+    },
+    {
+      "fila": 4328,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.572962683134994
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.092987486970159
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.503102790739695
+        }
+      ]
+    },
+    {
+      "fila": 4342,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.392148633697975
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.364605942837788
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.606630579187733
+        }
+      ]
+    },
+    {
+      "fila": 4353,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.416872497293156
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.1994324532121325
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.3592116409450528
+        }
+      ]
+    },
+    {
+      "fila": 4355,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.495692290641147
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.839913690772104
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.6555489689227403
+        }
+      ]
+    },
+    {
+      "fila": 4361,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.572962683134994
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4448188229813153
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.136094384795639
+        }
+      ]
+    },
+    {
+      "fila": 4370,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.657980079899593
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.334690804610244
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.3131202407776903
+        }
+      ]
+    },
+    {
+      "fila": 4383,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.93155853037197
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.732803716843952
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.4354162151152083
+        }
+      ]
+    },
+    {
+      "fila": 4385,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.004180720303358
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.852330987977009
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.674354184654954
+        }
+      ]
+    },
+    {
+      "fila": 4389,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.8959888607977304
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.738329161391358
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": -1.400334064532076
+        }
+      ]
+    },
+    {
+      "fila": 4391,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.4122242947306995
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.1572164231204423
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5793443947525847
+        }
+      ]
+    },
+    {
+      "fila": 4400,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.0335527864609935
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.762788356258861
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.7307536373497983
+        }
+      ]
+    },
+    {
+      "fila": 4405,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.112372579808989
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.0318394998014
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": 1.3034344125003317
+        }
+      ]
+    },
+    {
+      "fila": 4406,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.144843447674928
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.887300940468524
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.092987486970159
+        }
+      ]
+    },
+    {
+      "fila": 4409,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.035102187315147
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.038835499160156
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.7016403690901023
+        }
+      ]
+    },
+    {
+      "fila": 4417,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.634805617158563
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.259902751591776
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.61603318705384
+        }
+      ]
+    },
+    {
+      "fila": 4419,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -14.658915044417784
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.416969048594723
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 7.17244519631281
+        }
+      ]
+    },
+    {
+      "fila": 4421,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.254584708034708
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.153234571577823
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.10521708440391
+        }
+      ]
+    },
+    {
+      "fila": 4427,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.951634191404696
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4448188229813153
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.3752812577863986
+        }
+      ]
+    },
+    {
+      "fila": 4435,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.007279522011665
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.1541354741389176
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.916344612041688
+        }
+      ]
+    },
+    {
+      "fila": 4441,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.871264997202551
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.0562986946689037
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.329267580883488
+        }
+      ]
+    },
+    {
+      "fila": 4448,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.195840575719441
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.097748020014897
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.505966810150074
+        }
+      ]
+    },
+    {
+      "fila": 4449,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.8728143980567
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.206982408941084
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.457048420415067
+        }
+      ]
+    },
+    {
+      "fila": 4462,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.175764914686713
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.884547258768268
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.86345212529652
+        }
+      ]
+    },
+    {
+      "fila": 4469,
+      "top_contribuciones": [
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.625435794919947
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": 1.6239598111795033
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.3525282602576782
+        }
+      ]
+    },
+    {
+      "fila": 4475,
+      "top_contribuciones": [
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.7872475511263644
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": 2.1108231789548366
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": -1.34661967770691
+        }
+      ]
+    },
+    {
+      "fila": 4480,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.359677765832036
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.515810893846881
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.349809033078946
+        }
+      ]
+    },
+    {
+      "fila": 4495,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.441596360888335
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.92788812558806
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.689410771656351
+        }
+      ]
+    },
+    {
+      "fila": 4501,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.710526608798256
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.3253498382114426
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.154540344980692
+        }
+      ]
+    },
+    {
+      "fila": 4510,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.254584708034708
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.477932052534102
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.8483955382951236
+        }
+      ]
+    },
+    {
+      "fila": 4527,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.220564439314621
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5304260050175778
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.2025891270463382
+        }
+      ]
+    },
+    {
+      "fila": 4533,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.899087662506032
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.5533503233072588
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.493737212716322
+        }
+      ]
+    },
+    {
+      "fila": 4536,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.8959888607977304
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.7872475511263644
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": 1.3034344125003317
+        }
+      ]
+    },
+    {
+      "fila": 4544,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.305581836079222
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.084204935029428
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.8117067459938685
+        }
+      ]
+    },
+    {
+      "fila": 4556,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.195840575719441
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.8117067459938685
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.780583203451988
+        }
+      ]
+    },
+    {
+      "fila": 4558,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.194291174865287
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.567114797318833
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.779209630658482
+        }
+      ]
+    },
+    {
+      "fila": 4565,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.251485906326405
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.7166969560914986
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.0422937341189735
+        }
+      ]
+    },
+    {
+      "fila": 4570,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.73679987324759
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.2642018510426833
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.6362732119158663
+        }
+      ]
+    },
+    {
+      "fila": 4579,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.572962683134994
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.505966810150074
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.0763781966771533
+        }
+      ]
+    },
+    {
+      "fila": 4596,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.248387104618104
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6649515767888468
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.7187748660024726
+        }
+      ]
+    },
+    {
+      "fila": 4600,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.409125493022397
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.689410771656351
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": 1.172304189914792
+        }
+      ]
+    },
+    {
+      "fila": 4601,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.8728143980567
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.126254051725305
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5304260050175778
+        }
+      ]
+    },
+    {
+      "fila": 4611,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.900637063360186
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.674701399366199
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.61603318705384
+        }
+      ]
+    },
+    {
+      "fila": 4618,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.494142889786998
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.3968740876357906
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.982921110066393
+        }
+      ]
+    },
+    {
+      "fila": 4620,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.953183592258848
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.0791145870418273
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.970691512632641
+        }
+      ]
+    },
+    {
+      "fila": 4621,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.087648716213809
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9095435254638824
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.6126345216814104
+        }
+      ]
+    },
+    {
+      "fila": 4632,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.548238819539813
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.363423110888922
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.044069097235152
+        }
+      ]
+    },
+    {
+      "fila": 4642,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.035102187315147
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.169192061140314
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.4153480943787624
+        }
+      ]
+    },
+    {
+      "fila": 4643,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.818718468303887
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.4476204582858565
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.1174466818376625
+        }
+      ]
+    },
+    {
+      "fila": 4646,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.382852228573064
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.729341262776041
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.6613859845023822
+        }
+      ]
+    },
+    {
+      "fila": 4651,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.141744645966625
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.8117067459938685
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.747157005206415
+        }
+      ]
+    },
+    {
+      "fila": 4661,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.518866753382178
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.7994771485601166
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.7562895169615544
+        }
+      ]
+    },
+    {
+      "fila": 4665,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.710526608798256
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.3253498382114426
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.154540344980692
+        }
+      ]
+    },
+    {
+      "fila": 4669,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.0860993153596565
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5181964075838255
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.7582470185637762
+        }
+      ]
+    },
+    {
+      "fila": 4684,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.733701071539284
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.9311757307637412
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.440561853473694
+        }
+      ]
+    },
+    {
+      "fila": 4702,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.634805617158563
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.892961193985886
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.364865620080343
+        }
+      ]
+    },
+    {
+      "fila": 4718,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.225212641877071
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.483560040384457
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.95846191519889
+        }
+      ]
+    },
+    {
+      "fila": 4720,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.3550295632695817
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.762788356258861
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.09738492283814
+        }
+      ]
+    },
+    {
+      "fila": 4723,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.0335527864609935
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.8947129804120455
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.603803589620088
+        }
+      ]
+    },
+    {
+      "fila": 4727,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.923811526101213
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9095435254638824
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.3390996635513868
+        }
+      ]
+    },
+    {
+      "fila": 4729,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.4972416914953
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.4064105425773485
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.337579435645194
+        }
+      ]
+    },
+    {
+      "fila": 4731,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.8959888607977304
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.398727422813953
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.45995703390801
+        }
+      ]
+    },
+    {
+      "fila": 4737,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.982555658416484
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.932942939852031
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.970691512632641
+        }
+      ]
+    },
+    {
+      "fila": 4739,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.602334749292625
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.6763260252292667
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.7872475511263644
+        }
+      ]
+    },
+    {
+      "fila": 4748,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.761523736842769
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6404923819213435
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.4384061238611194
+        }
+      ]
+    },
+    {
+      "fila": 4755,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.249936505472252
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.4721050074164634
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.1275953588518046
+        }
+      ]
+    },
+    {
+      "fila": 4759,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.653331877337139
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6649515767888468
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.3478159231303393
+        }
+      ]
+    },
+    {
+      "fila": 4761,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.007279522011665
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.0599855840428773
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.019609902367648
+        }
+      ]
+    },
+    {
+      "fila": 4762,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -14.334339465900895
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.257984281955949
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.811323318454386
+        }
+      ]
+    },
+    {
+      "fila": 4768,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.115471381517292
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.300890643343939
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.8245154862462063
+        }
+      ]
+    },
+    {
+      "fila": 4770,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.168017910415955
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.872854733162627
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.0844064310963994
+        }
+      ]
+    },
+    {
+      "fila": 4778,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.035102187315147
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.214713301344807
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5426556024513296
+        }
+      ]
+    },
+    {
+      "fila": 4814,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.169567311270107
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.0651502675343565
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.1757676794387764
+        }
+      ]
+    },
+    {
+      "fila": 4816,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.4062426470828442
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": -1.080836676461242
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 0.8036022302205327
+        }
+      ]
+    },
+    {
+      "fila": 4831,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.981006257562331
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.113220560044676
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.603803589620088
+        }
+      ]
+    },
+    {
+      "fila": 4833,
+      "top_contribuciones": [
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4692780178488185
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": 2.0026313194492094
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": -1.0243333567559145
+        }
+      ]
+    },
+    {
+      "fila": 4836,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.03820098902345
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.868281806697087
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.2275130587414282
+        }
+      ]
+    },
+    {
+      "fila": 4840,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.066023654326932
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.218203801970632
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.4354162151152083
+        }
+      ]
+    },
+    {
+      "fila": 4844,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.0335527864609935
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.215283461307677
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.2641001224803223
+        }
+      ]
+    },
+    {
+      "fila": 4851,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.520416154236327
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.1608340843093607
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6404923819213435
+        }
+      ]
+    },
+    {
+      "fila": 4920,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 17.041299790731756
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.657795925370465
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.95846191519889
+        }
+      ]
+    },
+    {
+      "fila": 4936,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 17.690450947765527
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.128180238712991
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.606630579187733
+        }
+      ]
+    },
+    {
+      "fila": 4976,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.225212641877071
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.793192192553998
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.689410771656351
+        }
+      ]
+    },
+    {
+      "fila": 4984,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.253035307180559
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.949059307332782
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.9348649077306246
+        }
+      ]
+    },
+    {
+      "fila": 4988,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.468804589855853
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 11.227871107953156
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.290280993244632
+        }
+      ]
+    },
+    {
+      "fila": 4997,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -14.334339465900895
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.209065892220943
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.822622315044439
+        }
+      ]
+    },
+    {
+      "fila": 5048,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.60853235270923
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.270893650943963
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.765615345826506
+        }
+      ]
+    },
+    {
+      "fila": 5061,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.308680637787523
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.774555491524307
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6404923819213435
+        }
+      ]
+    },
+    {
+      "fila": 5141,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -1.5677000442365754
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.2719566800199293
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 1.246864839868495
+        }
+      ]
+    },
+    {
+      "fila": 5219,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.902186464214337
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.92613960721852
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.61603318705384
+        }
+      ]
+    },
+    {
+      "fila": 5309,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.464770823629363
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.5791835449345397
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.9189461333299893
+        }
+      ]
+    },
+    {
+      "fila": 5334,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -15.199874341945932
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.783856971607277
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 7.762669097135349
+        }
+      ]
+    },
+    {
+      "fila": 5394,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 17.636355018012715
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.712050087981938
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.875681722730272
+        }
+      ]
+    },
+    {
+      "fila": 5399,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.602334749292625
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.476176046998854
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.0534717051012588
+        }
+      ]
+    },
+    {
+      "fila": 5400,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.545140017831507
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.6111725901050646
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.8896721285093374
+        }
+      ]
+    },
+    {
+      "fila": 5401,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.143294046820774
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.409681304748155
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.9165293219219206
+        }
+      ]
+    },
+    {
+      "fila": 5488,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.682703943494774
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.385288504252545
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.5765174051849398
+        }
+      ]
+    },
+    {
+      "fila": 5490,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.554436422956417
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.527945823367685
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.557712189452726
+        }
+      ]
+    },
+    {
+      "fila": 5536,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.710526608798256
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.9038422241105666
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6404923819213435
+        }
+      ]
+    },
+    {
+      "fila": 5615,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 18.069122456035235
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.873878479932899
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.9368297098990306
+        }
+      ]
+    },
+    {
+      "fila": 5617,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.767721340259374
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.061614429015032
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.139078887137521
+        }
+      ]
+    },
+    {
+      "fila": 5706,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 17.36587536924864
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.041356370178892
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.5332529945852227
+        }
+      ]
+    },
+    {
+      "fila": 5734,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.900637063360186
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.730403470275063
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.567114797318833
+        }
+      ]
+    },
+    {
+      "fila": 5909,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.82336667086634
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.736382576252622
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.628262784487592
+        }
+      ]
+    },
+    {
+      "fila": 5941,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.735250472393437
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.9476398591759825
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.723272574389961
+        }
+      ]
+    },
+    {
+      "fila": 5999,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -4.002016883113247
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 1.7051432213006044
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.6613859845023822
+        }
+      ]
+    },
+    {
+      "fila": 6024,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.82336667086634
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.6069396854928835
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.726099563957606
+        }
+      ]
+    },
+    {
+      "fila": 6078,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.469419026191817
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.274811922205037
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9340027203313856
+        }
+      ]
+    },
+    {
+      "fila": 6153,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.33650330309101
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.389660275702619
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.193651256007818
+        }
+      ]
+    },
+    {
+      "fila": 6159,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.874363798910855
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.7721412216764545
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.2002268743062796
+        }
+      ]
+    },
+    {
+      "fila": 6172,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.5673858075583418
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -0.47605869060562633
+        },
+        {
+          "atributo": "type_L",
+          "shap_value": 0.08757193776638277
+        }
+      ]
+    },
+    {
+      "fila": 6178,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.229860844439532
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.235509951096164
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.631089774055236
+        }
+      ]
+    },
+    {
+      "fila": 6248,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.60543355100093
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.972411824356713
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.126849289703769
+        }
+      ]
+    },
+    {
+      "fila": 6255,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.495692290641147
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.245523733675551
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4448188229813153
+        }
+      ]
+    },
+    {
+      "fila": 6256,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.2853852767262206
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.0506447155336143
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 0.3497839790213401
+        }
+      ]
+    },
+    {
+      "fila": 6340,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.328756298820248
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.2246860691737838
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.5549146369453977
+        }
+      ]
+    },
+    {
+      "fila": 6419,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.761523736842769
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.261374861475039
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.7971244870940277
+        }
+      ]
+    },
+    {
+      "fila": 6478,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -4.7593598996526545
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 2.342495831584288
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 1.028386848204186
+        }
+      ]
+    },
+    {
+      "fila": 6497,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.82336667086634
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.895003786314328
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.2642018510426833
+        }
+      ]
+    },
+    {
+      "fila": 6525,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 19.313328840349975
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -9.593283463223276
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.2642018510426833
+        }
+      ]
+    },
+    {
+      "fila": 6540,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.957831794821304
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.258752185309918
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5793443947525847
+        }
+      ]
+    },
+    {
+      "fila": 6618,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.093846319630414
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.008637993248506
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.300890643343939
+        }
+      ]
+    },
+    {
+      "fila": 6673,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 7.520416154236327
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.3790335667041274
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4325892255475634
+        }
+      ]
+    },
+    {
+      "fila": 6678,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.985654460124781
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.382644691779799
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.970691512632641
+        }
+      ]
+    },
+    {
+      "fila": 6759,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.463221422775209
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.6865837820887057
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.4840481232446234
+        }
+      ]
+    },
+    {
+      "fila": 6799,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.901572027878375
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 12.92778515124465
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.365062510149856
+        }
+      ]
+    },
+    {
+      "fila": 6924,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.115471381517292
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.816905218292335
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.4419918334136705
+        }
+      ]
+    },
+    {
+      "fila": 6932,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.851189336169824
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.6791937952661256
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.1419058767051657
+        }
+      ]
+    },
+    {
+      "fila": 6990,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.252420870844597
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 10.995508756711875
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.105879386614852
+        }
+      ]
+    },
+    {
+      "fila": 7011,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.901572027878375
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 12.891096358943397
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.374131441623451
+        }
+      ]
+    },
+    {
+      "fila": 7083,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.930009129517817
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.3497388420614005
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.9923237179325
+        }
+      ]
+    },
+    {
+      "fila": 7087,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -4.002016883113247
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 1.8789644078778533
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.4330998404954272
+        }
+      ]
+    },
+    {
+      "fila": 7167,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.118570183225593
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.01660591544283
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6527219793550953
+        }
+      ]
+    },
+    {
+      "fila": 7280,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 17.14949165023738
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.879007629700752
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.557712189452726
+        }
+      ]
+    },
+    {
+      "fila": 7426,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -4.81345582940547
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 2.175315283353824
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.4196712437891357
+        }
+      ]
+    },
+    {
+      "fila": 7509,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.010378323719966
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.098028070694842
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5304260050175778
+        }
+      ]
+    },
+    {
+      "fila": 7510,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.3928140503765525
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": -0.9913444827467421
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -0.6715271950873093
+        }
+      ]
+    },
+    {
+      "fila": 7536,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.739284238619929
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 12.2306980975208
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.3456609436366715
+        }
+      ]
+    },
+    {
+      "fila": 7564,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.769270741113527
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.977229608830082
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.420359628113812
+        }
+      ]
+    },
+    {
+      "fila": 7569,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 18.339602104799308
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.994029432707399
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.9612889047665343
+        }
+      ]
+    },
+    {
+      "fila": 7591,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.659529480753742
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.351600497715073
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.4598754099827116
+        }
+      ]
+    },
+    {
+      "fila": 7593,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.01347712542827
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.907739935979431
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.7778449432602574
+        }
+      ]
+    },
+    {
+      "fila": 7669,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.09074751792211
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.9991510953095375
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.970691512632641
+        }
+      ]
+    },
+    {
+      "fila": 7687,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -10.277144734439776
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 6.336032134452451
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 4.5130925449367
+        }
+      ]
+    },
+    {
+      "fila": 7756,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.820267869158037
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.29272677864058
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5793443947525847
+        }
+      ]
+    },
+    {
+      "fila": 7759,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.523514955944632
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.325175860113358
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.753385748392754
+        }
+      ]
+    },
+    {
+      "fila": 7763,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 20.936206732934423
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.442768091141328
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.6339167636228815
+        }
+      ]
+    },
+    {
+      "fila": 7849,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.410674893876547
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.505966810150074
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.974241214343377
+        }
+      ]
+    },
+    {
+      "fila": 7884,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.469419026191817
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.11996779956235
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.3930734436786634
+        }
+      ]
+    },
+    {
+      "fila": 7926,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 10.38750043113552
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.5546495605968795
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.982921110066393
+        }
+      ]
+    },
+    {
+      "fila": 7997,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -15.253970271698746
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 13.832775361342282
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 7.8201056631347905
+        }
+      ]
+    },
+    {
+      "fila": 8026,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.654881278191292
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.068261603475065
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.2002268743062796
+        }
+      ]
+    },
+    {
+      "fila": 8111,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -2.595522709540058
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 1.5964151576226298
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.3256710668450953
+        }
+      ]
+    },
+    {
+      "fila": 8192,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.769270741113527
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.521581016591757
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.27925843804408
+        }
+      ]
+    },
+    {
+      "fila": 8195,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.65643067904544
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.043692085413773
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.481507615282571
+        }
+      ]
+    },
+    {
+      "fila": 8199,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -5.895374424461767
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 2.7127609764201916
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 1.9333770583018164
+        }
+      ]
+    },
+    {
+      "fila": 8245,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.60853235270923
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.814831311349349
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.3742682279464495
+        }
+      ]
+    },
+    {
+      "fila": 8307,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 17.2035875799902
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -9.879772495184248
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.1635380820050245
+        }
+      ]
+    },
+    {
+      "fila": 8357,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 4.545140017831507
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.3714412383788046
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -1.5557075489868066
+        }
+      ]
+    },
+    {
+      "fila": 8398,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -13.955667957631187
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 12.695422800003369
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 6.4873444140356336
+        }
+      ]
+    },
+    {
+      "fila": 8437,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.147942249383235
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.950956910292755
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -4.866279114864164
+        }
+      ]
+    },
+    {
+      "fila": 8506,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -5.733086635203323
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 2.766282539215182
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 1.6031779275905187
+        }
+      ]
+    },
+    {
+      "fila": 8582,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 18.44779396430494
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -9.46562462455671
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9951507075001444
+        }
+      ]
+    },
+    {
+      "fila": 8608,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.871264997202551
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.830784447073588
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.567114797318833
+        }
+      ]
+    },
+    {
+      "fila": 8609,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.5002428240268846
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": 1.4075760921682445
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.2707774693411458
+        }
+      ]
+    },
+    {
+      "fila": 8690,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 3.5173173525280252
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.1296762792714143
+        },
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.298813873432512
+        }
+      ]
+    },
+    {
+      "fila": 8846,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.254584708034708
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.153234571577823
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.10521708440391
+        }
+      ]
+    },
+    {
+      "fila": 8926,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 11.739898674955892
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.2128624009134725
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.466451028281174
+        }
+      ]
+    },
+    {
+      "fila": 9014,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.659529480753742
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.0199262346162286
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.9217731228976342
+        }
+      ]
+    },
+    {
+      "fila": 9015,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 6.3844016294272175
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.289013271503108
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.8088797564262233
+        }
+      ]
+    },
+    {
+      "fila": 9016,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.007279522011665
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.8957148756861417
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.236915666607535
+        }
+      ]
+    },
+    {
+      "fila": 9018,
+      "top_contribuciones": [
+        {
+          "atributo": "tool_wear_min",
+          "shap_value": 1.4330998404954272
+        },
+        {
+          "atributo": "torque_nm",
+          "shap_value": -1.3513163252253164
+        },
+        {
+          "atributo": "temp_delta_k",
+          "shap_value": -0.6635189262828745
+        }
+      ]
+    },
+    {
+      "fila": 9084,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 20.28705557590065
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -10.440014409441075
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.092987486970159
+        }
+      ]
+    },
+    {
+      "fila": 9174,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -6.652717441001176
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 3.5721431144245526
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 2.4653228624985335
+        }
+      ]
+    },
+    {
+      "fila": 9175,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 14.228311443585378
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.985010058236391
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.1513084845712727
+        }
+      ]
+    },
+    {
+      "fila": 9414,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 8.65643067904544
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.7498686170697884
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.7505587588251097
+        }
+      ]
+    },
+    {
+      "fila": 9493,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.467869625337665
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.85712072589246
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.212456471740032
+        }
+      ]
+    },
+    {
+      "fila": 9576,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -7.896923825315919
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 4.195852583545892
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 3.2371731778059267
+        }
+      ]
+    },
+    {
+      "fila": 9613,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 13.308680637787523
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.991367377846606
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.4692780178488185
+        }
+      ]
+    },
+    {
+      "fila": 9653,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.630157414596113
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.616001129800768
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5181964075838255
+        }
+      ]
+    },
+    {
+      "fila": 9654,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.954732993112998
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.736424646089493
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.5915739921863366
+        }
+      ]
+    },
+    {
+      "fila": 9659,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.984105059270634
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -5.406237093068291
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.5699417868864773
+        }
+      ]
+    },
+    {
+      "fila": 9663,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.89753826165188
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.018258587863816
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -1.7599613666912164
+        }
+      ]
+    },
+    {
+      "fila": 9664,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.143294046820774
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -3.549410541601513
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.2030538638739245
+        }
+      ]
+    },
+    {
+      "fila": 9667,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 5.951634191404696
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.775017953692613
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -2.0481307052020195
+        }
+      ]
+    },
+    {
+      "fila": 9758,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": -11.737734837765778
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": 8.46398208792526
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": 5.217570115225768
+        }
+      ]
+    },
+    {
+      "fila": 9764,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 15.58070968740575
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -7.0526446115466115
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -3.4843346048502153
+        }
+      ]
+    },
+    {
+      "fila": 9822,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 12.443145761742484
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -6.188915613441153
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6771811742225986
+        }
+      ]
+    },
+    {
+      "fila": 9830,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 9.84654113360737
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -4.251658046774124
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.95846191519889
+        }
+      ]
+    },
+    {
+      "fila": 9974,
+      "top_contribuciones": [
+        {
+          "atributo": "torque_nm",
+          "shap_value": 16.392148633697975
+        },
+        {
+          "atributo": "power_w",
+          "shap_value": -8.66582415978971
+        },
+        {
+          "atributo": "rotational_speed_rpm",
+          "shap_value": -2.6649515767888468
+        }
+      ]
+    }
+  ],
+  "estabilidad_raiz_arbol": {
+    "n_boot": 300,
+    "porcentaje_raiz_por_atributo": {
+      "rotational_speed_rpm": 95.66666666666667,
+      "torque_nm": 4.333333333333333,
+      "air_temperature_k": 0.0,
+      "process_temperature_k": 0.0,
+      "tool_wear_min": 0.0,
+      "power_w": 0.0,
+      "temp_delta_k": 0.0,
+      "wear_x_torque": 0.0,
+      "type_L": 0.0,
+      "type_M": 0.0,
+      "type_H": 0.0
+    },
+    "atributo_raiz_mas_frecuente": "rotational_speed_rpm",
+    "porcentaje_raiz_mas_frecuente": 95.66666666666667,
+    "profundidad_efectiva_media": 3.0
+  }
+}

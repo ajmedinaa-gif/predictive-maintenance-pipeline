@@ -1,0 +1,146 @@
+{
+  "dataset": "lab180",
+  "correlacion": {
+    "max_abs_r": 0.09715280863447308,
+    "par": [
+      "vibration_mm_s",
+      "load_percent"
+    ],
+    "umbral": 0.15,
+    "cadena_fisica_esperada": "carga -> temperatura -> viscosidad del lubricante -> vibración",
+    "variables_mutuamente_independientes": true,
+    "veredicto": "variables mutuamente independientes: compatible con generación sintética",
+    "evidencia": "correlación máxima |r| = 0.0972 entre ['vibration_mm_s', 'load_percent'] (por debajo del umbral 0.15)"
+  },
+  "nulos": {
+    "nulos_por_columna": {
+      "temperature_c": 4,
+      "vibration_mm_s": 4,
+      "pressure_bar": 4,
+      "hours_since_maintenance": 0,
+      "load_percent": 0
+    },
+    "reparto_igual_por_columna": true,
+    "solapan_entre_columnas": false,
+    "sin_solapamiento": true,
+    "bandera_regularidad_sospechosa": true,
+    "veredicto": "patrón de nulos demasiado regular: compatible con generación sintética",
+    "reparto_por_clase_no_concluyente": {
+      "observado": 0,
+      "esperado_bajo_azar": 0.6666666666666666,
+      "p_valor": 0.4923997289160874,
+      "interpretacion": "no concluyente: un reparto así de extremo, o más, ocurre por puro azar con probabilidad 0.4924"
+    },
+    "evidencia": "12 nulos repartidos en exactamente [4, 4, 4] por columna, sin solapar jamás entre columnas"
+  },
+  "digitos": {
+    "alpha": 0.05,
+    "por_atributo": {
+      "temperature_c": {
+        "decimales_detectados": 1,
+        "conteos_por_digito": [
+          11,
+          16,
+          20,
+          18,
+          16,
+          22,
+          19,
+          21,
+          16,
+          17
+        ],
+        "chi2": 5.136363636363635,
+        "p_valor_uniformidad": 0.822262709236714,
+        "compatible_con_uniforme": true
+      },
+      "vibration_mm_s": {
+        "decimales_detectados": 2,
+        "conteos_por_digito": [
+          21,
+          12,
+          18,
+          13,
+          20,
+          14,
+          16,
+          23,
+          15,
+          24
+        ],
+        "chi2": 9.227272727272727,
+        "p_valor_uniformidad": 0.41656508949989673,
+        "compatible_con_uniforme": true
+      },
+      "pressure_bar": {
+        "decimales_detectados": 2,
+        "conteos_por_digito": [
+          15,
+          18,
+          9,
+          23,
+          15,
+          20,
+          23,
+          22,
+          17,
+          14
+        ],
+        "chi2": 10.477272727272727,
+        "p_valor_uniformidad": 0.3132453074541932,
+        "compatible_con_uniforme": true
+      },
+      "hours_since_maintenance": {
+        "decimales_detectados": 0,
+        "conteos_por_digito": [
+          20,
+          16,
+          14,
+          14,
+          23,
+          22,
+          17,
+          15,
+          22,
+          17
+        ],
+        "chi2": 6.0,
+        "p_valor_uniformidad": 0.7399182920946538,
+        "compatible_con_uniforme": true
+      },
+      "load_percent": {
+        "decimales_detectados": 1,
+        "conteos_por_digito": [
+          11,
+          18,
+          19,
+          18,
+          26,
+          14,
+          18,
+          15,
+          24,
+          17
+        ],
+        "chi2": 9.777777777777777,
+        "p_valor_uniformidad": 0.36877323003467344,
+        "compatible_con_uniforme": true
+      }
+    },
+    "atributos_compatibles_con_uniforme": [
+      "temperature_c",
+      "vibration_mm_s",
+      "pressure_bar",
+      "hours_since_maintenance",
+      "load_percent"
+    ],
+    "todas_las_columnas_compatibles_con_uniforme": true,
+    "veredicto": "distribución del último dígito compatible con muestreo uniforme (evidencia débil de apoyo a generación sintética)"
+  },
+  "veredicto": "probablemente sintético",
+  "evidencia": [
+    "correlación máxima |r| = 0.0972 entre ['vibration_mm_s', 'load_percent'] (por debajo del umbral 0.15)",
+    "12 nulos repartidos en exactamente [4, 4, 4] por columna, sin solapar jamás entre columnas",
+    "el último dígito decimal es compatible con muestreo uniforme en todos los atributos (evidencia débil, de apoyo)"
+  ]
+}

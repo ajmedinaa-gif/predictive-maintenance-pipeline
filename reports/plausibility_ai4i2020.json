@@ -1,0 +1,238 @@
+{
+  "dataset": "ai4i2020",
+  "correlacion": {
+    "max_abs_r": 0.8761071581166637,
+    "par": [
+      "air_temperature_k",
+      "process_temperature_k"
+    ],
+    "umbral": 0.15,
+    "cadena_fisica_esperada": "carga -> temperatura -> viscosidad del lubricante -> vibración",
+    "variables_mutuamente_independientes": false,
+    "veredicto": "hay al menos un par de atributos acoplados: compatible con un equipo real",
+    "evidencia": "correlación máxima |r| = 0.8761 entre ['air_temperature_k', 'process_temperature_k'] (por encima del umbral 0.15)"
+  },
+  "nulos": {
+    "nulos_por_columna": {
+      "air_temperature_k": 0,
+      "process_temperature_k": 0,
+      "rotational_speed_rpm": 0,
+      "torque_nm": 0,
+      "tool_wear_min": 0,
+      "twf": 0,
+      "hdf": 0,
+      "pwf": 0,
+      "osf": 0,
+      "rnf": 0
+    },
+    "reparto_igual_por_columna": false,
+    "solapan_entre_columnas": false,
+    "sin_solapamiento": true,
+    "bandera_regularidad_sospechosa": false,
+    "veredicto": "patrón de nulos irregular: compatible con fallos de instrumentación reales",
+    "reparto_por_clase_no_concluyente": {
+      "observado": 0,
+      "esperado_bajo_azar": 0.0,
+      "p_valor": null,
+      "interpretacion": "no concluyente: sin nulos o sin positivos, no hay nada que probar"
+    },
+    "evidencia": "0 nulos repartidos en exactamente [] por columna, sin solapar jamás entre columnas"
+  },
+  "digitos": {
+    "alpha": 0.05,
+    "por_atributo": {
+      "air_temperature_k": {
+        "decimales_detectados": 1,
+        "conteos_por_digito": [
+          952,
+          873,
+          998,
+          1097,
+          1089,
+          1054,
+          978,
+          1012,
+          988,
+          959
+        ],
+        "chi2": 41.135999999999996,
+        "p_valor_uniformidad": 4.724754136221304e-06,
+        "compatible_con_uniforme": false
+      },
+      "process_temperature_k": {
+        "decimales_detectados": 1,
+        "conteos_por_digito": [
+          935,
+          982,
+          963,
+          917,
+          1102,
+          1041,
+          1153,
+          1014,
+          969,
+          924
+        ],
+        "chi2": 55.233999999999995,
+        "p_valor_uniformidad": 1.0990705312169725e-08,
+        "compatible_con_uniforme": false
+      },
+      "rotational_speed_rpm": {
+        "decimales_detectados": 0,
+        "conteos_por_digito": [
+          995,
+          998,
+          1021,
+          990,
+          981,
+          1006,
+          1017,
+          978,
+          987,
+          1027
+        ],
+        "chi2": 2.638,
+        "p_valor_uniformidad": 0.9769389502567135,
+        "compatible_con_uniforme": true
+      },
+      "torque_nm": {
+        "decimales_detectados": 1,
+        "conteos_por_digito": [
+          997,
+          994,
+          984,
+          984,
+          999,
+          973,
+          989,
+          1020,
+          1038,
+          1022
+        ],
+        "chi2": 3.7359999999999998,
+        "p_valor_uniformidad": 0.9279136513849527,
+        "compatible_con_uniforme": true
+      },
+      "tool_wear_min": {
+        "decimales_detectados": 0,
+        "conteos_por_digito": [
+          1098,
+          957,
+          1018,
+          990,
+          1016,
+          1004,
+          981,
+          994,
+          959,
+          983
+        ],
+        "chi2": 14.516,
+        "p_valor_uniformidad": 0.1051176683934056,
+        "compatible_con_uniforme": true
+      },
+      "twf": {
+        "decimales_detectados": 0,
+        "conteos_por_digito": [
+          9954,
+          46,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "chi2": 89084.23199999999,
+        "p_valor_uniformidad": 0.0,
+        "compatible_con_uniforme": false
+      },
+      "hdf": {
+        "decimales_detectados": 0,
+        "conteos_por_digito": [
+          9885,
+          115,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "chi2": 87726.45000000001,
+        "p_valor_uniformidad": 0.0,
+        "compatible_con_uniforme": false
+      },
+      "pwf": {
+        "decimales_detectados": 0,
+        "conteos_por_digito": [
+          9905,
+          95,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "chi2": 88118.04999999999,
+        "p_valor_uniformidad": 0.0,
+        "compatible_con_uniforme": false
+      },
+      "osf": {
+        "decimales_detectados": 0,
+        "conteos_por_digito": [
+          9902,
+          98,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "chi2": 88059.20800000001,
+        "p_valor_uniformidad": 0.0,
+        "compatible_con_uniforme": false
+      },
+      "rnf": {
+        "decimales_detectados": 0,
+        "conteos_por_digito": [
+          9981,
+          19,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "chi2": 89620.72200000001,
+        "p_valor_uniformidad": 0.0,
+        "compatible_con_uniforme": false
+      }
+    },
+    "atributos_compatibles_con_uniforme": [
+      "rotational_speed_rpm",
+      "torque_nm",
+      "tool_wear_min"
+    ],
+    "todas_las_columnas_compatibles_con_uniforme": false,
+    "veredicto": "al menos un atributo se aparta de la uniformidad en el último dígito"
+  },
+  "veredicto": "compatible con datos reales",
+  "evidencia": [
+    "correlación máxima |r| = 0.8761 entre ['air_temperature_k', 'process_temperature_k'] (por encima del umbral 0.15)",
+    "0 nulos repartidos en exactamente [] por columna, sin solapar jamás entre columnas"
+  ]
+}

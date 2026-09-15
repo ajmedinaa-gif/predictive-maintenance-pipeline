@@ -1,0 +1,465 @@
+{
+  "dataset": "ai4i2020",
+  "fichero": "data/raw/ai4i2020/ai4i2020.csv",
+  "datos_simulados": false,
+  "n_filas": 10000,
+  "n_columnas": 12,
+  "objetivo": "machine_failure",
+  "clase_positiva": "yes",
+  "balance_de_clases": {
+    "n": 10000,
+    "clases": [
+      "no",
+      "yes"
+    ],
+    "conteos": {
+      "no": 9661,
+      "yes": 339
+    },
+    "nulos_en_objetivo": 0,
+    "clase_positiva": "yes",
+    "n_positivos": 339,
+    "prevalencia": 0.0339,
+    "prevalencia_pct": 3.39,
+    "clase_mayoritaria": "no",
+    "accuracy_trivial_mayoritario": 0.9661,
+    "accuracy_trivial_mayoritario_pct": 96.61
+  },
+  "descriptiva": [
+    {
+      "atributo": "air_temperature_k",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 295.3,
+      "max": 304.5,
+      "media": 300.00493,
+      "mediana": 300.1,
+      "desv_tipica": 2.0002586829157516,
+      "asimetria": 0.11427392052155025
+    },
+    {
+      "atributo": "process_temperature_k",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 305.7,
+      "max": 313.8,
+      "media": 310.00555999999995,
+      "mediana": 310.1,
+      "desv_tipica": 1.4837342191657208,
+      "asimetria": 0.015027267769343768
+    },
+    {
+      "atributo": "rotational_speed_rpm",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 1168.0,
+      "max": 2886.0,
+      "media": 1538.7761,
+      "mediana": 1503.0,
+      "desv_tipica": 179.2840959134266,
+      "asimetria": 1.993171004713752
+    },
+    {
+      "atributo": "torque_nm",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 3.8,
+      "max": 76.6,
+      "media": 39.986909999999995,
+      "mediana": 40.1,
+      "desv_tipica": 9.968933725121337,
+      "asimetria": -0.009516595840058577
+    },
+    {
+      "atributo": "tool_wear_min",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 0.0,
+      "max": 253.0,
+      "media": 107.951,
+      "mediana": 108.0,
+      "desv_tipica": 63.65414663663636,
+      "asimetria": 0.027292239050452523
+    },
+    {
+      "atributo": "twf",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 0.0,
+      "max": 1.0,
+      "media": 0.0046,
+      "mediana": 0.0,
+      "desv_tipica": 0.06767051004531426,
+      "asimetria": 14.644461804356506
+    },
+    {
+      "atributo": "hdf",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 0.0,
+      "max": 1.0,
+      "media": 0.0115,
+      "mediana": 0.0,
+      "desv_tipica": 0.10662498247919606,
+      "asimetria": 9.16478874243643
+    },
+    {
+      "atributo": "pwf",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 0.0,
+      "max": 1.0,
+      "media": 0.0095,
+      "mediana": 0.0,
+      "desv_tipica": 0.09700871645943425,
+      "asimetria": 10.114516252342675
+    },
+    {
+      "atributo": "osf",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 0.0,
+      "max": 1.0,
+      "media": 0.0098,
+      "mediana": 0.0,
+      "desv_tipica": 0.09851360562404211,
+      "asimetria": 9.953915634416001
+    },
+    {
+      "atributo": "rnf",
+      "n": 10000,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 0.0,
+      "max": 1.0,
+      "media": 0.0019,
+      "mediana": 0.0,
+      "desv_tipica": 0.043549737748530666,
+      "asimetria": 22.879570150559367
+    }
+  ],
+  "nulos": {
+    "n_filas": 10000,
+    "nulos_por_columna": {
+      "air_temperature_k": 0,
+      "process_temperature_k": 0,
+      "rotational_speed_rpm": 0,
+      "torque_nm": 0,
+      "tool_wear_min": 0,
+      "twf": 0,
+      "hdf": 0,
+      "pwf": 0,
+      "osf": 0,
+      "rnf": 0
+    },
+    "total_nulos": 0,
+    "filas_afectadas": 0,
+    "filas_por_numero_de_nulos": {},
+    "max_nulos_en_una_fila": 0,
+    "solapan_entre_columnas": false,
+    "reparto_por_clase": {
+      "no": {
+        "n_clase": 9661,
+        "filas_con_nulos": 0,
+        "pct_de_la_clase": 0.0
+      },
+      "yes": {
+        "n_clase": 339,
+        "filas_con_nulos": 0,
+        "pct_de_la_clase": 0.0
+      }
+    },
+    "clases_sin_ningun_nulo": [
+      "no",
+      "yes"
+    ],
+    "duplicados_completos": 0,
+    "lectura": "0 nulos repartidos en 0 filas; ninguna fila acumula más de 0. Los nulos NO se solapan entre columnas. Ninguna fila de la clase 'no', 'yes' tiene nulos: el patrón de ausencia no es aleatorio respecto al objetivo."
+  },
+  "anomalias_fisicas": [],
+  "rangos_fisicos": {
+    "vibration_mm_s": [
+      0.0,
+      100.0
+    ],
+    "pressure_bar": [
+      0.0,
+      1000.0
+    ],
+    "temperature_c": [
+      -273.15,
+      300.0
+    ],
+    "hours_since_maintenance": [
+      0.0,
+      100000.0
+    ],
+    "load_percent": [
+      0.0,
+      100.0
+    ]
+  },
+  "asociacion_univariante": [
+    {
+      "atributo": "torque_nm",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 50.16814159292036,
+      "media_negativos": 39.62965531518476,
+      "auc": 0.7702366874203646,
+      "p_valor": 2.262232331232534e-64,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "rotational_speed_rpm",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 1496.486725663717,
+      "media_negativos": 1540.2600144912535,
+      "auc": 0.23331345595022288,
+      "p_valor": 9.706907631568239e-63,
+      "direccion": "inversa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "hdf",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 0.3392330383480826,
+      "media_negativos": 0.0,
+      "auc": 0.6696165191740413,
+      "p_valor": 0.0,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "tool_wear_min",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 143.78171091445427,
+      "media_negativos": 106.69371700652107,
+      "auc": 0.6621116620392974,
+      "p_valor": 2.9164608736257626e-24,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "osf",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 0.2890855457227139,
+      "media_negativos": 0.0,
+      "auc": 0.644542772861357,
+      "p_valor": 0.0,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "pwf",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 0.28023598820059,
+      "media_negativos": 0.0,
+      "auc": 0.640117994100295,
+      "p_valor": 0.0,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "air_temperature_k",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 300.88643067846607,
+      "media_negativos": 299.9739985508746,
+      "auc": 0.6327358820962792,
+      "p_valor": 8.656108133039112e-17,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "twf",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 0.13569321533923304,
+      "media_negativos": 0.0,
+      "auc": 0.5678466076696165,
+      "p_valor": 2.4598880837915977e-288,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "process_temperature_k",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 310.2902654867257,
+      "media_negativos": 309.99556981678916,
+      "auc": 0.5637062495286373,
+      "p_valor": 6.486083127989518e-05,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "rnf",
+      "n_positivos": 339,
+      "n_negativos": 9661,
+      "media_positivos": 0.0029498525073746312,
+      "media_negativos": 0.0018631611634406377,
+      "auc": 0.500543345671967,
+      "p_valor": 0.6516653645255943,
+      "direccion": "directa",
+      "significativo_5pct": false
+    }
+  ],
+  "correlaciones": {
+    "matriz": [
+      {
+        "index": "air_temperature_k",
+        "air_temperature_k": 1.0,
+        "process_temperature_k": 0.876107,
+        "rotational_speed_rpm": 0.02267,
+        "torque_nm": -0.013778,
+        "tool_wear_min": 0.013853,
+        "twf": 0.009955,
+        "hdf": 0.137831,
+        "pwf": 0.00347,
+        "osf": 0.001988,
+        "rnf": 0.017688
+      },
+      {
+        "index": "process_temperature_k",
+        "air_temperature_k": 0.876107,
+        "process_temperature_k": 1.0,
+        "rotational_speed_rpm": 0.019277,
+        "torque_nm": -0.014061,
+        "tool_wear_min": 0.013488,
+        "twf": 0.007315,
+        "hdf": 0.056933,
+        "pwf": -0.003355,
+        "osf": 0.004554,
+        "rnf": 0.022279
+      },
+      {
+        "index": "rotational_speed_rpm",
+        "air_temperature_k": 0.02267,
+        "process_temperature_k": 0.019277,
+        "rotational_speed_rpm": 1.0,
+        "torque_nm": -0.875027,
+        "tool_wear_min": 0.000223,
+        "twf": 0.010389,
+        "hdf": -0.121241,
+        "pwf": 0.123018,
+        "osf": -0.104575,
+        "rnf": -0.013088
+      },
+      {
+        "index": "torque_nm",
+        "air_temperature_k": -0.013778,
+        "process_temperature_k": -0.014061,
+        "rotational_speed_rpm": -0.875027,
+        "torque_nm": 1.0,
+        "tool_wear_min": -0.003093,
+        "twf": -0.014662,
+        "hdf": 0.14261,
+        "pwf": 0.083781,
+        "osf": 0.183465,
+        "rnf": 0.016136
+      },
+      {
+        "index": "tool_wear_min",
+        "air_temperature_k": 0.013853,
+        "process_temperature_k": 0.013488,
+        "rotational_speed_rpm": 0.000223,
+        "torque_nm": -0.003093,
+        "tool_wear_min": 1.0,
+        "twf": 0.115792,
+        "hdf": -0.001287,
+        "pwf": -0.009334,
+        "osf": 0.155894,
+        "rnf": 0.011326
+      },
+      {
+        "index": "twf",
+        "air_temperature_k": 0.009955,
+        "process_temperature_k": 0.007315,
+        "rotational_speed_rpm": 0.010389,
+        "torque_nm": -0.014662,
+        "tool_wear_min": 0.115792,
+        "twf": 1.0,
+        "hdf": -0.007332,
+        "pwf": 0.008577,
+        "osf": 0.038243,
+        "rnf": 0.03097
+      },
+      {
+        "index": "hdf",
+        "air_temperature_k": 0.137831,
+        "process_temperature_k": 0.056933,
+        "rotational_speed_rpm": -0.121241,
+        "torque_nm": 0.14261,
+        "tool_wear_min": -0.001287,
+        "twf": -0.007332,
+        "hdf": 1.0,
+        "pwf": 0.018443,
+        "osf": 0.046396,
+        "rnf": -0.004706
+      },
+      {
+        "index": "pwf",
+        "air_temperature_k": 0.00347,
+        "process_temperature_k": -0.003355,
+        "rotational_speed_rpm": 0.123018,
+        "torque_nm": 0.083781,
+        "tool_wear_min": -0.009334,
+        "twf": 0.008577,
+        "hdf": 0.018443,
+        "pwf": 1.0,
+        "osf": 0.115836,
+        "rnf": -0.004273
+      },
+      {
+        "index": "osf",
+        "air_temperature_k": 0.001988,
+        "process_temperature_k": 0.004554,
+        "rotational_speed_rpm": -0.104575,
+        "torque_nm": 0.183465,
+        "tool_wear_min": 0.155894,
+        "twf": 0.038243,
+        "hdf": 0.046396,
+        "pwf": 0.115836,
+        "osf": 1.0,
+        "rnf": -0.004341
+      },
+      {
+        "index": "rnf",
+        "air_temperature_k": 0.017688,
+        "process_temperature_k": 0.022279,
+        "rotational_speed_rpm": -0.013088,
+        "torque_nm": 0.016136,
+        "tool_wear_min": 0.011326,
+        "twf": 0.03097,
+        "hdf": -0.004706,
+        "pwf": -0.004273,
+        "osf": -0.004341,
+        "rnf": 1.0
+      }
+    ],
+    "maxima_absoluta": {
+      "max_abs_r": 0.8761071581166637,
+      "par": [
+        "air_temperature_k",
+        "process_temperature_k"
+      ],
+      "r_con_signo": 0.8761071581166637
+    }
+  }
+}

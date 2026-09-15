@@ -1,0 +1,196 @@
+{
+  "dataset": "lab180",
+  "n_filas": 179,
+  "shap_importancia_media": {
+    "hours_since_maintenance": 1.0713494380275663,
+    "vibration_mm_s": 1.0222578754294767,
+    "pressure_bar": 0.9246857630204692,
+    "temperature_c": 0.7738658903946538,
+    "load_percent": 0.6236486663423404
+  },
+  "shap_casos_positivos": [
+    {
+      "fila": 31,
+      "top_contribuciones": [
+        {
+          "atributo": "temperature_c",
+          "shap_value": 2.018536385590238
+        },
+        {
+          "atributo": "vibration_mm_s",
+          "shap_value": 1.6529307354573266
+        },
+        {
+          "atributo": "hours_since_maintenance",
+          "shap_value": 1.6161229231126482
+        }
+      ]
+    },
+    {
+      "fila": 32,
+      "top_contribuciones": [
+        {
+          "atributo": "hours_since_maintenance",
+          "shap_value": 1.4766095492251612
+        },
+        {
+          "atributo": "vibration_mm_s",
+          "shap_value": 1.3998639929352297
+        },
+        {
+          "atributo": "pressure_bar",
+          "shap_value": 1.3351775403936723
+        }
+      ]
+    },
+    {
+      "fila": 40,
+      "top_contribuciones": [
+        {
+          "atributo": "vibration_mm_s",
+          "shap_value": 3.323171236103164
+        },
+        {
+          "atributo": "pressure_bar",
+          "shap_value": 1.644939555797045
+        },
+        {
+          "atributo": "load_percent",
+          "shap_value": 1.0636310652312717
+        }
+      ]
+    },
+    {
+      "fila": 54,
+      "top_contribuciones": [
+        {
+          "atributo": "vibration_mm_s",
+          "shap_value": 3.0802271632819513
+        },
+        {
+          "atributo": "temperature_c",
+          "shap_value": 1.159473956850519
+        },
+        {
+          "atributo": "hours_since_maintenance",
+          "shap_value": 0.9790118490264581
+        }
+      ]
+    },
+    {
+      "fila": 71,
+      "top_contribuciones": [
+        {
+          "atributo": "pressure_bar",
+          "shap_value": 2.1508841809558876
+        },
+        {
+          "atributo": "temperature_c",
+          "shap_value": 1.6931339504615561
+        },
+        {
+          "atributo": "vibration_mm_s",
+          "shap_value": 1.3492506444308106
+        }
+      ]
+    },
+    {
+      "fila": 79,
+      "top_contribuciones": [
+        {
+          "atributo": "temperature_c",
+          "shap_value": -1.9774055177899723
+        },
+        {
+          "atributo": "load_percent",
+          "shap_value": 1.4253001749069478
+        },
+        {
+          "atributo": "vibration_mm_s",
+          "shap_value": 1.1366745807122496
+        }
+      ]
+    },
+    {
+      "fila": 103,
+      "top_contribuciones": [
+        {
+          "atributo": "vibration_mm_s",
+          "shap_value": 3.0701044935810677
+        },
+        {
+          "atributo": "hours_since_maintenance",
+          "shap_value": 1.843994767128877
+        },
+        {
+          "atributo": "load_percent",
+          "shap_value": 0.8854955335999687
+        }
+      ]
+    },
+    {
+      "fila": 121,
+      "top_contribuciones": [
+        {
+          "atributo": "pressure_bar",
+          "shap_value": 1.665590356823936
+        },
+        {
+          "atributo": "temperature_c",
+          "shap_value": 1.549956879004937
+        },
+        {
+          "atributo": "hours_since_maintenance",
+          "shap_value": 1.458007766040163
+        }
+      ]
+    },
+    {
+      "fila": 124,
+      "top_contribuciones": [
+        {
+          "atributo": "temperature_c",
+          "shap_value": 2.369971015529215
+        },
+        {
+          "atributo": "hours_since_maintenance",
+          "shap_value": -1.9135654362407704
+        },
+        {
+          "atributo": "load_percent",
+          "shap_value": 1.5656493816467623
+        }
+      ]
+    },
+    {
+      "fila": 164,
+      "top_contribuciones": [
+        {
+          "atributo": "pressure_bar",
+          "shap_value": 1.8927491681197435
+        },
+        {
+          "atributo": "hours_since_maintenance",
+          "shap_value": 1.3882510790964195
+        },
+        {
+          "atributo": "load_percent",
+          "shap_value": 0.9070877192522474
+        }
+      ]
+    }
+  ],
+  "estabilidad_raiz_arbol": {
+    "n_boot": 300,
+    "porcentaje_raiz_por_atributo": {
+      "vibration_mm_s": 56.0,
+      "pressure_bar": 18.0,
+      "hours_since_maintenance": 9.0,
+      "load_percent": 9.0,
+      "temperature_c": 8.0
+    },
+    "atributo_raiz_mas_frecuente": "vibration_mm_s",
+    "porcentaje_raiz_mas_frecuente": 56.0,
+    "profundidad_efectiva_media": 2.98
+  }
+}

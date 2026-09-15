@@ -1,0 +1,27 @@
+{
+  "dataset": "lab180",
+  "fichero": "data/raw/lab180/Lab1_engineering_failures.csv",
+  "n_filas_leidas": 180,
+  "n_validas": 179,
+  "n_cuarentena": 1,
+  "ruta_cuarentena": "data/quarantine/lab180_20260915T002944Z.csv",
+  "avisos_calidad": [],
+  "motivos_cuarentena": [
+    {
+      "index": 82,
+      "quarantine_reason": "vibration_mm_s=-0.34 incumple greater_than_or_equal_to(0.0)"
+    }
+  ],
+  "cuarentena": [
+    {
+      "index": 82,
+      "temperature_c": 79.8,
+      "vibration_mm_s": -0.34,
+      "pressure_bar": 4.53,
+      "hours_since_maintenance": 250,
+      "load_percent": 63.8,
+      "failure": "no",
+      "quarantine_reason": "vibration_mm_s=-0.34 incumple greater_than_or_equal_to(0.0)"
+    }
+  ]
+}

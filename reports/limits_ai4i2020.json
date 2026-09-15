@@ -1,0 +1,62 @@
+{
+  "dataset": "ai4i2020",
+  "n_filas": 10000,
+  "n_positivos": 339,
+  "prevalencia": 0.0339,
+  "recall_wilson_ci_ilustrativo": [
+    0.753534861696237,
+    0.8385755577911822
+  ],
+  "recall_wilson_ci_ilustrativo_aciertos": 271,
+  "recall_wilson_ci_ilustrativo_n": 339,
+  "presupuesto_estadistico": {
+    "margen_0.10": {
+      "margen_pp": 10.0,
+      "fallos_necesarios": 62,
+      "ciclos_de_maquina_necesarios": 1829
+    },
+    "margen_0.05": {
+      "margen_pp": 5.0,
+      "fallos_necesarios": 246,
+      "ciclos_de_maquina_necesarios": 7257
+    }
+  },
+  "curva_aprendizaje_pr_auc": [
+    {
+      "index": 0,
+      "n_entrenamiento": 2000,
+      "pr_auc_media": 0.42570949394127755,
+      "pr_auc_desv": 0.07131233418497648
+    },
+    {
+      "index": 1,
+      "n_entrenamiento": 2960,
+      "pr_auc_media": 0.41393158303756905,
+      "pr_auc_desv": 0.06889515580070694
+    },
+    {
+      "index": 2,
+      "n_entrenamiento": 3920,
+      "pr_auc_media": 0.4382757133185186,
+      "pr_auc_desv": 0.03670246421034884
+    },
+    {
+      "index": 3,
+      "n_entrenamiento": 4880,
+      "pr_auc_media": 0.45214998354680247,
+      "pr_auc_desv": 0.04045217644216725
+    },
+    {
+      "index": 4,
+      "n_entrenamiento": 5840,
+      "pr_auc_media": 0.4572906429396692,
+      "pr_auc_desv": 0.04370182910121764
+    },
+    {
+      "index": 5,
+      "n_entrenamiento": 6800,
+      "pr_auc_media": 0.4542056031954365,
+      "pr_auc_desv": 0.04443386819630976
+    }
+  ]
+}

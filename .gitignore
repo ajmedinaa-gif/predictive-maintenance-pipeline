@@ -36,10 +36,15 @@ data/quarantine/*
 
 # ---- Salidas del pipeline ----
 # Se regeneran con `make all`; no se versionan. Excepción a propósito
-# (CLAUDE.md §2.16): los PNG de reports/figures/ SÍ se versionan, porque el
-# destinatario del repo no ejecuta el código.
+# (CLAUDE.md §2.16): los PNG de reports/figures/ y los JSON de reports/*.json
+# SÍ se versionan -- el destinatario del repo no ejecuta el código, y el
+# dashboard desplegado (Streamlit Community Cloud) los necesita para
+# arrancar con algo que mostrar. reports/*.html NO: pesan 1.7-2.5 MB cada
+# uno (el límite de pre-commit es 1 MB), y los publica el workflow de Pages,
+# no git.
 reports/*
 !reports/.gitkeep
+!reports/*.json
 !reports/figures/
 reports/figures/*
 !reports/figures/.gitkeep

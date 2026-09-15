@@ -1,0 +1,40 @@
+{
+  "datasets": {
+    "lab180": {
+      "n_filas": 179,
+      "n_positivos": 10,
+      "prevalencia": 0.055865921787709494,
+      "dummy_accuracy": 0.9441269841269841,
+      "mejor_modelo_pr_auc_nombre": "logistic_plain",
+      "mejor_modelo_pr_auc_valor": 0.7152662138903558,
+      "modelo_decision": "logistic_plain_platt",
+      "umbral_optimo_platt": 0.14100000000000001,
+      "recall_platt_a_umbral_optimo": 0.8,
+      "recall_platt_tp": 8,
+      "recall_platt_n_positivos": 10,
+      "recall_wilson_ci_platt": [
+        0.49016247153664183,
+        0.9433178485456247
+      ],
+      "ahorro_pct_platt": 64.67661691542288
+    },
+    "ai4i2020": {
+      "n_filas": 10000,
+      "n_positivos": 339,
+      "prevalencia": 0.0339,
+      "dummy_accuracy": 0.9661000000000002,
+      "mejor_modelo_pr_auc_nombre": "gradient_boosting",
+      "mejor_modelo_pr_auc_valor": 0.9108288324401688,
+      "modelo_decision": "logistic_plain_platt",
+      "umbral_optimo_platt": 0.084,
+      "recall_platt_a_umbral_optimo": 0.7876106194690266,
+      "recall_platt_tp": 267,
+      "recall_platt_n_positivos": 339,
+      "recall_wilson_ci_platt": [
+        0.7409746451694796,
+        0.8278013735499625
+      ],
+      "ahorro_pct_platt": 40.73467903255137
+    }
+  }
+}

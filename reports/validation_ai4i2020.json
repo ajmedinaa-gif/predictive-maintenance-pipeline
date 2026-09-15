@@ -1,0 +1,11 @@
+{
+  "dataset": "ai4i2020",
+  "fichero": "data/raw/ai4i2020/ai4i2020.csv",
+  "n_filas_leidas": 10000,
+  "n_validas": 10000,
+  "n_cuarentena": 0,
+  "ruta_cuarentena": null,
+  "avisos_calidad": [],
+  "motivos_cuarentena": [],
+  "cuarentena": []
+}

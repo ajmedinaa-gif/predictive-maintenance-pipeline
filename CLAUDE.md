@@ -60,9 +60,20 @@ El repo no vende un modelo. Vende criterio.
     aprobación explícita de la usuaria.
 15. Español en documentación y comentarios; inglés en nombres de código y en los
     mensajes de commit.
-16. **Las figuras PNG de `reports/figures/` SÍ se versionan, a propósito: el
-    destinatario del repo no ejecuta el código.** El resto de salidas
-    generadas (`reports/*.json`, `*.md`, `*.html`), no.
+16. **Las figuras PNG de `reports/figures/` y los JSON de `reports/*.json`
+    SÍ se versionan, a propósito: el destinatario del repo no ejecuta el
+    código, y el dashboard desplegado (Streamlit Community Cloud) los
+    necesita para arrancar con algo que mostrar** -- sin ellos, cuatro de
+    sus cinco pestañas saldrían vacías y la de Decisión no podría
+    recalcular nada (las predicciones out-of-fold del modelo de decisión
+    viven en `calibration_<dataset>.json`). Son 15 ficheros, 628 KB en
+    total (Fase 5, Bloque B). El resto de salidas generadas (`*.md`,
+    `*.html`), no: los informes HTML pesan 1.7-2.5 MB cada uno (por encima
+    del límite de `pre-commit`) y los publica el workflow de Pages, no git.
+    Riesgo de esta excepción: si el código de modelado cambia y no se
+    vuelve a ejecutar `make all`, los JSON comiteados quedan desfasados —
+    ver README.md, "Decisiones de diseño", para cómo se detecta hoy y qué
+    falta por automatizar.
 
 ## 3. Formato del CHECKPOINT (obligatorio al cerrar cada fase)
 

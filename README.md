@@ -363,6 +363,30 @@ navegador sin instalar nada) o la pestaña correspondiente del dashboard.
   tiene (CLAUDE.md §14.7). La conclusión sin adornos: es el coste real de
   empaquetar un stack científico completo en un contenedor, y se reporta
   medido en vez de fijar un objetivo cómodo después de conocer el número.
+- **`reports/*.json` se versiona, a propósito, aunque sea una salida
+  regenerable.** El dashboard desplegado en Streamlit Community Cloud clona
+  el repo tal cual: sin estos 15 ficheros (628 KB en total) no tendría nada
+  que leer al arrancar, y cuatro de sus cinco pestañas saldrían vacías (la
+  de Decisión ni siquiera podría recalcular nada, porque las predicciones
+  out-of-fold del modelo de decisión viven en `calibration_<dataset>.json`).
+  Es la misma excepción que ya existía para los PNG de `reports/figures/`
+  (CLAUDE.md §2.16), extendida por la misma razón.
+
+  **El riesgo que esto introduce:** si el código de modelado cambia
+  (una nueva versión de scikit-learn, un ajuste en `pipeline.py`, una
+  métrica distinta) y nadie vuelve a ejecutar `make all`, los JSON
+  comiteados quedan desfasados respecto al código — y con ellos, el README
+  y el dashboard mienten en silencio, exactamente el tipo de error que este
+  proyecto existe para evitar. Hoy la única red de seguridad es
+  `tests/test_readme_correspondence.py`: compara números del README contra
+  los JSON en disco, así que detecta si alguien edita el README a mano sin
+  regenerar nada, pero **no** detecta si el JSON comiteado ya no coincide
+  con lo que el código actual produciría. Lo siguiente sería un job de CI
+  que regenere los reports y falle si difieren de los comiteados — no se
+  implementó todavía porque las diferencias de coma flotante entre macOS
+  (donde se generaron) y Linux (donde corre CI) harían ese chequeo
+  inestable sin antes decidir una tolerancia numérica, y eso queda como
+  trabajo pendiente, no resuelto a medias.
 
 ## Limitaciones
 

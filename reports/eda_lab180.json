@@ -1,0 +1,266 @@
+{
+  "dataset": "lab180",
+  "fichero": "data/raw/lab180/Lab1_engineering_failures.csv",
+  "datos_simulados": true,
+  "n_filas": 180,
+  "n_columnas": 6,
+  "objetivo": "failure",
+  "clase_positiva": "yes",
+  "balance_de_clases": {
+    "n": 180,
+    "clases": [
+      "no",
+      "yes"
+    ],
+    "conteos": {
+      "no": 170,
+      "yes": 10
+    },
+    "nulos_en_objetivo": 0,
+    "clase_positiva": "yes",
+    "n_positivos": 10,
+    "prevalencia": 0.05555555555555555,
+    "prevalencia_pct": 5.555555555555555,
+    "clase_mayoritaria": "no",
+    "accuracy_trivial_mayoritario": 0.9444444444444444,
+    "accuracy_trivial_mayoritario_pct": 94.44444444444444
+  },
+  "descriptiva": [
+    {
+      "atributo": "temperature_c",
+      "n": 176,
+      "nulos": 4,
+      "pct_nulos": 2.2222222222222223,
+      "min": 47.0,
+      "max": 89.8,
+      "media": 67.81022727272726,
+      "mediana": 67.95,
+      "desv_tipica": 7.665149925254129,
+      "asimetria": 0.13104600267389857
+    },
+    {
+      "atributo": "vibration_mm_s",
+      "n": 176,
+      "nulos": 4,
+      "pct_nulos": 2.2222222222222223,
+      "min": -0.34,
+      "max": 9.59,
+      "media": 4.24375,
+      "mediana": 4.295,
+      "desv_tipica": 1.3349433909881188,
+      "asimetria": 0.21145387107606942
+    },
+    {
+      "atributo": "pressure_bar",
+      "n": 176,
+      "nulos": 4,
+      "pct_nulos": 2.2222222222222223,
+      "min": 4.27,
+      "max": 10.19,
+      "media": 6.763011363636363,
+      "mediana": 6.75,
+      "desv_tipica": 1.1330315945091047,
+      "asimetria": 0.2164519827333857
+    },
+    {
+      "atributo": "hours_since_maintenance",
+      "n": 180,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 20.0,
+      "max": 896.0,
+      "media": 473.18888888888887,
+      "mediana": 440.0,
+      "desv_tipica": 262.34266450364163,
+      "asimetria": 0.005001080269321683
+    },
+    {
+      "atributo": "load_percent",
+      "n": 180,
+      "nulos": 0,
+      "pct_nulos": 0.0,
+      "min": 31.5,
+      "max": 100.0,
+      "media": 71.09,
+      "mediana": 71.4,
+      "desv_tipica": 14.434154483116012,
+      "asimetria": -0.09988738498428185
+    }
+  ],
+  "nulos": {
+    "n_filas": 180,
+    "nulos_por_columna": {
+      "temperature_c": 4,
+      "vibration_mm_s": 4,
+      "pressure_bar": 4,
+      "hours_since_maintenance": 0,
+      "load_percent": 0
+    },
+    "total_nulos": 12,
+    "filas_afectadas": 12,
+    "filas_por_numero_de_nulos": {
+      "1": 12
+    },
+    "max_nulos_en_una_fila": 1,
+    "solapan_entre_columnas": false,
+    "reparto_por_clase": {
+      "no": {
+        "n_clase": 170,
+        "filas_con_nulos": 12,
+        "pct_de_la_clase": 7.0588235294117645
+      },
+      "yes": {
+        "n_clase": 10,
+        "filas_con_nulos": 0,
+        "pct_de_la_clase": 0.0
+      }
+    },
+    "clases_sin_ningun_nulo": [
+      "yes"
+    ],
+    "duplicados_completos": 0,
+    "lectura": "12 nulos repartidos en 12 filas; ninguna fila acumula más de 1. Los nulos NO se solapan entre columnas. Ninguna fila de la clase 'yes' tiene nulos: el patrón de ausencia no es aleatorio respecto al objetivo."
+  },
+  "anomalias_fisicas": [
+    {
+      "index": 0,
+      "fila": 82,
+      "atributo": "vibration_mm_s",
+      "valor": -0.34,
+      "limite_inferior": 0.0,
+      "limite_superior": 100.0,
+      "violacion": "por debajo del mínimo"
+    }
+  ],
+  "rangos_fisicos": {
+    "vibration_mm_s": [
+      0.0,
+      100.0
+    ],
+    "pressure_bar": [
+      0.0,
+      1000.0
+    ],
+    "temperature_c": [
+      -273.15,
+      300.0
+    ],
+    "hours_since_maintenance": [
+      0.0,
+      100000.0
+    ],
+    "load_percent": [
+      0.0,
+      100.0
+    ]
+  },
+  "asociacion_univariante": [
+    {
+      "atributo": "vibration_mm_s",
+      "n_positivos": 10,
+      "n_negativos": 166,
+      "media_positivos": 5.806,
+      "media_negativos": 4.1496385542168674,
+      "auc": 0.8503012048192771,
+      "p_valor": 0.0002047495296372265,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "pressure_bar",
+      "n_positivos": 10,
+      "n_negativos": 166,
+      "media_positivos": 5.797000000000001,
+      "media_negativos": 6.821204819277108,
+      "auc": 0.25150602409638556,
+      "p_valor": 0.008461863112290026,
+      "direccion": "inversa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "temperature_c",
+      "n_positivos": 10,
+      "n_negativos": 166,
+      "media_positivos": 73.59,
+      "media_negativos": 67.46204819277109,
+      "auc": 0.7259036144578314,
+      "p_valor": 0.0166924056555577,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "hours_since_maintenance",
+      "n_positivos": 10,
+      "n_negativos": 170,
+      "media_positivos": 668.4,
+      "media_negativos": 461.70588235294116,
+      "auc": 0.721764705882353,
+      "p_valor": 0.01870979638673228,
+      "direccion": "directa",
+      "significativo_5pct": true
+    },
+    {
+      "atributo": "load_percent",
+      "n_positivos": 10,
+      "n_negativos": 170,
+      "media_positivos": 79.74000000000001,
+      "media_negativos": 70.58117647058825,
+      "auc": 0.668235294117647,
+      "p_valor": 0.07459274767608057,
+      "direccion": "directa",
+      "significativo_5pct": false
+    }
+  ],
+  "correlaciones": {
+    "matriz": [
+      {
+        "index": "temperature_c",
+        "temperature_c": 1.0,
+        "vibration_mm_s": -0.038049,
+        "pressure_bar": -0.045946,
+        "hours_since_maintenance": -0.018083,
+        "load_percent": 0.028154
+      },
+      {
+        "index": "vibration_mm_s",
+        "temperature_c": -0.038049,
+        "vibration_mm_s": 1.0,
+        "pressure_bar": 0.066148,
+        "hours_since_maintenance": 0.01624,
+        "load_percent": 0.097153
+      },
+      {
+        "index": "pressure_bar",
+        "temperature_c": -0.045946,
+        "vibration_mm_s": 0.066148,
+        "pressure_bar": 1.0,
+        "hours_since_maintenance": 0.034424,
+        "load_percent": 0.007006
+      },
+      {
+        "index": "hours_since_maintenance",
+        "temperature_c": -0.018083,
+        "vibration_mm_s": 0.01624,
+        "pressure_bar": 0.034424,
+        "hours_since_maintenance": 1.0,
+        "load_percent": 0.037912
+      },
+      {
+        "index": "load_percent",
+        "temperature_c": 0.028154,
+        "vibration_mm_s": 0.097153,
+        "pressure_bar": 0.007006,
+        "hours_since_maintenance": 0.037912,
+        "load_percent": 1.0
+      }
+    ],
+    "maxima_absoluta": {
+      "max_abs_r": 0.09715280863447308,
+      "par": [
+        "vibration_mm_s",
+        "load_percent"
+      ],
+      "r_con_signo": 0.09715280863447308
+    }
+  }
+}
