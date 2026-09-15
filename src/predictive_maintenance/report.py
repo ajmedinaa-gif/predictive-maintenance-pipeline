@@ -9,18 +9,22 @@ En la Fase 5 crece con el renderizador HTML de jinja2, que lee este mismo JSON.
 
 from __future__ import annotations
 
+import base64
 import json
 from pathlib import Path
 from typing import TYPE_CHECKING
 
 import numpy as np
 import pandas as pd
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from predictive_maintenance import datasets, eda, evaluate
 
 if TYPE_CHECKING:
     from predictive_maintenance import plausibility
     from predictive_maintenance.data import ValidationResult
+
+TEMPLATES_DIR = Path(__file__).parent / "templates"
 
 _COLUMNAS_METRICAS = ("fold", "n_test", "n_positivos_test")
 _COLUMNAS_TABLA_RESULTADOS = (
@@ -214,26 +218,36 @@ def build_calibration_report(
     variantes: dict,
     reliability_curves: dict,
     brier_decompositions: dict,
+    oof_y_true: list | None = None,
+    oof_y_score: list | None = None,
 ) -> dict:
     """Payload de la Fase 4, tarea A: la tabla de CLAUDE.md §9.2, medida sobre `n_filas` filas.
 
     `variantes` es la salida de `calibration.evaluate_cost_variants`;
     `reliability_curves[nombre]` un `DataFrame` de `calibration.reliability_curve`;
     `brier_decompositions[nombre]` un `dict` de `calibration.brier_decomposition`.
+
+    `oof_y_true`/`oof_y_score` son las predicciones out-of-fold del modelo de
+    la decisión (`logistic_plain` + Platt, un único `StratifiedKFold(5)`) --
+    las mismas que dibujan `cost_vs_threshold.png`. Se guardan en el JSON
+    (Fase 5, Bloque B) para que la pestaña "Decisión" del dashboard pueda
+    recalcular umbral, matriz de confusión y coste EN VIVO con
+    `threshold.py` según los sliders de coste, sin reentrenar nada.
     """
-    return _jsonable(
-        {
-            "dataset": dataset,
-            "n_filas": n_filas,
-            "n_positivos": n_positivos,
-            "costs": costs,
-            "umbral_teorico": theoretical_threshold,
-            "protocolo": protocolo,
-            "variantes": variantes,
-            "curvas_fiabilidad": reliability_curves,
-            "descomposicion_brier": brier_decompositions,
-        }
-    )
+    payload = {
+        "dataset": dataset,
+        "n_filas": n_filas,
+        "n_positivos": n_positivos,
+        "costs": costs,
+        "umbral_teorico": theoretical_threshold,
+        "protocolo": protocolo,
+        "variantes": variantes,
+        "curvas_fiabilidad": reliability_curves,
+        "descomposicion_brier": brier_decompositions,
+    }
+    if oof_y_true is not None and oof_y_score is not None:
+        payload["oof_decision_model"] = {"y_true": oof_y_true, "y_score": oof_y_score}
+    return _jsonable(payload)
 
 
 def write_calibration_report(report: dict, path: Path) -> Path:
@@ -327,3 +341,126 @@ def build_comparison_report(*, datasets_info: dict[str, dict]) -> dict:
 def write_comparison_report(report: dict, path: Path) -> Path:
     """Vuelca la comparación entre datasets a JSON."""
     return write_json_report(report, path)
+
+
+# --------------------------------------------------------------------------- #
+# Fase 5, Bloque B: informe HTML autocontenido (CLAUDE.md §15)
+#
+# Lee los `reports/*.json` ya generados por los demás comandos y las figuras
+# PNG ya dibujadas por `figures.py` (embebidas en base64): este módulo sigue
+# sin dibujar nada. Cero dependencias de red -- CSS y las imágenes van
+# incrustadas en el propio HTML.
+# --------------------------------------------------------------------------- #
+
+
+def _leer_json(reports_dir: Path, nombre: str) -> dict | None:
+    """Lee `reports/<nombre>.json` si existe; `None` si ese informe no se generó.
+
+    Algunas secciones (p.ej. explicabilidad) pueden no existir para todos los
+    datasets todavía -- el HTML se degrada mostrando "no generado", nunca
+    lanza una excepción por un fichero ausente.
+    """
+    ruta = reports_dir / f"{nombre}.json"
+    if not ruta.exists():
+        return None
+    return json.loads(ruta.read_text(encoding="utf-8"))
+
+
+def _imagen_base64(path: Path) -> str | None:
+    """`data:` URI de un PNG ya generado, o `None` si no existe todavía."""
+    if not path.exists():
+        return None
+    return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii")
+
+
+def build_html_report_context(dataset: str, reports_dir: Path, figures_dir: Path) -> dict:
+    """Reúne todos los `reports/*.json` y figuras PNG de `dataset` en un único contexto.
+
+    Ninguno de los números que acaba mostrando el HTML se calcula aquí: todos
+    vienen ya calculados de los JSON que escriben `eda`, `validate`, `train`,
+    `calibrate`, `explain` y `limits`. Si un JSON no existe, la sección
+    correspondiente del contexto queda en `None` y la plantilla lo muestra
+    como "no generado todavía" en vez de fallar.
+    """
+    fig_dir = figures_dir / dataset
+
+    eda_r = _leer_json(reports_dir, f"eda_{dataset}")
+    validation_r = _leer_json(reports_dir, f"validation_{dataset}")
+    plausibility_r = _leer_json(reports_dir, f"plausibility_{dataset}")
+    metrics_r = _leer_json(reports_dir, f"metrics_{dataset}")
+    calibration_r = _leer_json(reports_dir, f"calibration_{dataset}")
+    explainability_r = _leer_json(reports_dir, f"explainability_{dataset}")
+    limits_r = _leer_json(reports_dir, f"limits_{dataset}")
+
+    modelos_tabla = None
+    if metrics_r is not None:
+        modelos_tabla = []
+        for nombre, resultado in metrics_r["modelos"].items():
+            fila = {"nombre": nombre}
+            for clave, etiqueta in _COLUMNAS_TABLA_RESULTADOS:
+                fila[clave] = resultado["metricas"][clave]["media"]
+                fila[f"{clave}_etiqueta"] = etiqueta
+            fila["matriz_confusion"] = resultado["matriz_confusion"]
+            modelos_tabla.append(fila)
+
+    mejor_modelo = None
+    if metrics_r is not None:
+        nombre_mejor = max(
+            metrics_r["modelos"],
+            key=lambda n: metrics_r["modelos"][n]["metricas"]["average_precision"]["media"],
+        )
+        mejor_modelo = {
+            "nombre": nombre_mejor,
+            "pr_auc": metrics_r["modelos"][nombre_mejor]["metricas"]["average_precision"]["media"],
+        }
+
+    variantes_calibracion = None
+    if calibration_r is not None:
+        variantes_calibracion = calibration_r["variantes"]
+
+    figuras = {
+        "histogramas": _imagen_base64(fig_dir / "histogramas_por_clase.png"),
+        "boxplots": _imagen_base64(fig_dir / "boxplots_por_clase.png"),
+        "correlacion": _imagen_base64(fig_dir / "correlacion.png"),
+        "prevalencia": _imagen_base64(fig_dir / "prevalencia.png"),
+        "curvas_pr_roc": _imagen_base64(fig_dir / "curvas_pr_roc.png"),
+        "calibration_curve": _imagen_base64(fig_dir / "calibration_curve.png"),
+        "cost_vs_threshold": _imagen_base64(fig_dir / "cost_vs_threshold.png"),
+        "shap_beeswarm": _imagen_base64(fig_dir / "shap_beeswarm.png"),
+        "shap_waterfalls": _imagen_base64(fig_dir / "shap_waterfalls_positivos.png"),
+        "tree_root_stability": _imagen_base64(fig_dir / "tree_root_stability.png"),
+        "tree_render": _imagen_base64(fig_dir / "tree_render.png"),
+        "learning_curve": _imagen_base64(fig_dir / "learning_curve.png"),
+    }
+
+    return {
+        "dataset": dataset,
+        "eda": eda_r,
+        "validation": validation_r,
+        "plausibility": plausibility_r,
+        "metrics": metrics_r,
+        "modelos_tabla": modelos_tabla,
+        "mejor_modelo": mejor_modelo,
+        "calibration": calibration_r,
+        "variantes_calibracion": variantes_calibracion,
+        "explainability": explainability_r,
+        "limits": limits_r,
+        "figuras": figuras,
+    }
+
+
+def render_html_report(context: dict) -> str:
+    """Renderiza `templates/report.html.jinja2` con `context` (Jinja2, `autoescape=True`)."""
+    entorno = Environment(
+        loader=FileSystemLoader(TEMPLATES_DIR),
+        autoescape=select_autoescape(["html"]),
+    )
+    plantilla = entorno.get_template("report.html.jinja2")
+    return plantilla.render(**context)
+
+
+def write_html_report(html: str, path: Path) -> Path:
+    """Vuelca el informe HTML ya renderizado a disco."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(html, encoding="utf-8")
+    return path

@@ -169,3 +169,70 @@ def test_write_metrics_report_round_trips(payload_sintetico, tmp_path):
     ruta = report.write_metrics_report(payload_sintetico, tmp_path / "metrics_lab180.json")
     releido = json.loads(ruta.read_text(encoding="utf-8"))
     assert releido == payload_sintetico
+
+
+# --------------------------------------------------------------------------- #
+# Fase 5, Bloque B: informe HTML (CLAUDE.md §15) -- degradación y
+# correspondencia JSON -> HTML (regla dura CLAUDE.md §2.8)
+# --------------------------------------------------------------------------- #
+
+
+def test_html_context_missing_reports_degrades_to_none(tmp_path):
+    contexto = report.build_html_report_context(
+        "lab180", reports_dir=tmp_path, figures_dir=tmp_path / "figures"
+    )
+    for clave in ("eda", "validation", "plausibility", "metrics", "calibration", "limits"):
+        assert contexto[clave] is None
+    assert contexto["modelos_tabla"] is None
+    assert contexto["mejor_modelo"] is None
+    assert all(v is None for v in contexto["figuras"].values())
+
+
+def test_html_render_shows_placeholder_when_reports_are_missing(tmp_path):
+    contexto = report.build_html_report_context(
+        "lab180", reports_dir=tmp_path, figures_dir=tmp_path / "figures"
+    )
+    html = report.render_html_report(contexto)
+    assert "no generado todavía" in html
+    # Nada de Jinja sin renderizar debe colarse en la salida.
+    assert "{{" not in html and "{%" not in html
+
+
+def test_html_context_reads_real_metrics_json(tmp_path, payload_sintetico):
+    reports_dir = tmp_path
+    reports_dir.mkdir(exist_ok=True)
+    report.write_json_report(payload_sintetico, reports_dir / "metrics_lab180.json")
+
+    contexto = report.build_html_report_context(
+        "lab180", reports_dir=reports_dir, figures_dir=tmp_path / "figures"
+    )
+
+    assert contexto["metrics"] == payload_sintetico
+    nombres = {fila["nombre"] for fila in contexto["modelos_tabla"]}
+    assert nombres == {"dummy_most_frequent", "logistic_balanced"}
+    # `logistic_balanced` tiene mayor PR-AUC media que el dummy en el fixture.
+    assert contexto["mejor_modelo"]["nombre"] == "logistic_balanced"
+
+
+def test_html_render_reflects_the_same_numbers_as_the_json(tmp_path, payload_sintetico):
+    """Regla dura CLAUDE.md §2.8: el HTML no puede decir un número distinto al JSON."""
+    reports_dir = tmp_path
+    report.write_json_report(payload_sintetico, reports_dir / "metrics_lab180.json")
+
+    contexto = report.build_html_report_context(
+        "lab180", reports_dir=reports_dir, figures_dir=tmp_path / "figures"
+    )
+    html = report.render_html_report(contexto)
+
+    pr_auc_media = payload_sintetico["modelos"]["logistic_balanced"]["metricas"][
+        "average_precision"
+    ]["media"]
+    assert f"{pr_auc_media:.4f}" in html
+    assert "logistic_balanced" in html
+    assert "dummy_most_frequent" in html
+
+
+def test_write_html_report_writes_file(tmp_path):
+    ruta = report.write_html_report("<html>hola</html>", tmp_path / "sub" / "report_lab180.html")
+    assert ruta.exists()
+    assert ruta.read_text(encoding="utf-8") == "<html>hola</html>"

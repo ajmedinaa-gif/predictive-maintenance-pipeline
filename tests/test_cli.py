@@ -201,7 +201,12 @@ def test_explain_command_writes_report_and_figures(tmp_path, monkeypatch):
     assert informe["estabilidad_raiz_arbol"]["n_boot"] == 300
 
     figuras_dir = tmp_path / "reports" / "figures" / "lab180"
-    for nombre in ("shap_beeswarm.png", "shap_waterfalls_positivos.png", "tree_root_stability.png"):
+    for nombre in (
+        "shap_beeswarm.png",
+        "shap_waterfalls_positivos.png",
+        "tree_root_stability.png",
+        "tree_render.png",
+    ):
         ruta = figuras_dir / nombre
         assert ruta.exists()
         assert ruta.stat().st_size > 0
@@ -379,3 +384,34 @@ def test_compare_command_writes_comparison_report_and_figure(tmp_path, monkeypat
     ruta_figura = tmp_path / "reports" / "figures" / "comparacion_pr.png"
     assert ruta_figura.exists()
     assert ruta_figura.stat().st_size > 0
+
+
+def test_report_command_writes_self_contained_html(tmp_path, monkeypatch):
+    """Sin ningún `reports/*.json` previo: el HTML se genera igual, degradado."""
+    config_prueba = _config_de_prueba(tmp_path)
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    result = runner.invoke(app, ["report", "--dataset", "lab180"])
+    assert result.exit_code == 0, result.output
+    assert "Secciones sin generar todavía" in result.output
+
+    ruta_html = tmp_path / "reports" / "report_lab180.html"
+    assert ruta_html.exists()
+    contenido = ruta_html.read_text(encoding="utf-8")
+    assert "<html" in contenido
+    assert "no generado todavía" in contenido
+    assert "{{" not in contenido
+
+
+def test_report_command_embeds_real_eda_numbers(tmp_path, monkeypatch):
+    config_prueba = _config_de_prueba(tmp_path)
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    result = runner.invoke(app, ["eda", "--dataset", "lab180"])
+    assert result.exit_code == 0, result.output
+
+    result = runner.invoke(app, ["report", "--dataset", "lab180"])
+    assert result.exit_code == 0, result.output
+
+    contenido = (tmp_path / "reports" / "report_lab180.html").read_text(encoding="utf-8")
+    assert "94.44" in contenido  # accuracy trivial mayoritario (CLAUDE.md §6.2)

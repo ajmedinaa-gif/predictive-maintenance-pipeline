@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Informe {{ dataset }} — predictive-maintenance-pipeline</title>
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1a1d23; --muted: #5b6470; --border: #e2e5e9;
+    --accent: #eb6834; --accent2: #2a78d6; --card: #f7f8fa; --code: #eef1f4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 20px 80px; }
+  header.hero {
+    background: linear-gradient(135deg, #1a1d23, #2c313a); color: #fff;
+    padding: 40px 20px;
+  }
+  header.hero .wrap { padding: 0 20px; }
+  header.hero h1 { margin: 0 0 6px; font-size: 26px; }
+  header.hero p { margin: 4px 0; color: #c7ccd4; }
+  header.hero .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; margin-right: 6px;
+  }
+  .badge.simulado { background: #5a3b1e; color: #ffd9a8; }
+  .badge.real { background: #123a24; color: #9fe8bd; }
+  nav.toc {
+    display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 14px 0 0;
+  }
+  nav.toc a { color: #c7ccd4; text-decoration: none; font-size: 13px; }
+  nav.toc a:hover { color: #fff; text-decoration: underline; }
+  section { padding: 34px 0; border-bottom: 1px solid var(--border); }
+  section:last-of-type { border-bottom: none; }
+  h2 { font-size: 20px; margin: 0 0 4px; scroll-margin-top: 16px; }
+  h3 { font-size: 15px; margin: 22px 0 8px; color: var(--muted); }
+  p { color: #2c313a; }
+  .lead { color: var(--muted); margin-top: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0 18px; font-size: 13.5px; }
+  th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; font-size: 12.5px; text-transform: uppercase; letter-spacing: .02em; }
+  tr.dummy td { color: var(--muted); font-style: italic; }
+  tr.mejor td { font-weight: 700; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin: 14px 0; }
+  .card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .card .n { font-size: 22px; font-weight: 700; }
+  .card .l { font-size: 12px; color: var(--muted); }
+  .evidencia { padding-left: 18px; }
+  .evidencia li { margin: 4px 0; }
+  .veredicto {
+    display: inline-block; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 13px;
+  }
+  .veredicto.sintetico { background: #5a1e1e; color: #ffb4b4; }
+  .veredicto.real { background: #123a24; color: #9fe8bd; }
+  figure { margin: 16px 0; }
+  figure img { max-width: 100%; border: 1px solid var(--border); border-radius: 8px; }
+  figcaption { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+  code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 12.5px; }
+  .missing { color: var(--muted); font-style: italic; padding: 10px 0; }
+  .footnote { color: var(--muted); font-size: 12.5px; margin-top: 24px; }
+  .cost-table td.pos { color: #1a7a3d; } .cost-table td.neg { color: #b8231f; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="wrap">
+    <span class="badge {{ 'simulado' if eda and eda.datos_simulados else 'real' }}">
+      {{ 'DATOS SIMULADOS' if eda and eda.datos_simulados else 'DATOS REALES' }}
+    </span>
+    <h1>{{ dataset }}</h1>
+    <p>predictive-maintenance-pipeline — informe generado por <code>pdm-cli report --dataset {{ dataset }}</code></p>
+    {% if eda %}
+    <p>{{ eda.n_filas }} filas · {{ eda.n_columnas }} columnas · objetivo <code>{{ eda.objetivo }}</code> = "{{ eda.clase_positiva }}"</p>
+    {% endif %}
+    <nav class="toc">
+      <a href="#resumen">Resumen</a>
+      <a href="#datos">Los datos</a>
+      <a href="#plausibilidad">Plausibilidad</a>
+      <a href="#contrato">Contrato y cuarentena</a>
+      <a href="#resultados">Resultados</a>
+      <a href="#umbral">Umbral por coste</a>
+      <a href="#calibracion">Calibración</a>
+      <a href="#explicabilidad">Explicabilidad</a>
+      <a href="#limites">Límites estadísticos</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+
+<section id="resumen">
+  <h2>Resumen ejecutivo</h2>
+  <p class="lead">Todo lo que sigue sale de <code>reports/*.json</code>, generados por el pipeline real -- ningún número de este informe se escribió a mano.</p>
+  <div class="cards">
+    {% if eda %}
+    <div class="card"><div class="n">{{ eda.n_filas }}</div><div class="l">filas</div></div>
+    <div class="card"><div class="n">{{ eda.balance_de_clases.n_positivos }}</div><div class="l">positivos ({{ '%.2f'|format(eda.balance_de_clases.prevalencia_pct) }} %)</div></div>
+    <div class="card"><div class="n">{{ '%.2f'|format(eda.balance_de_clases.accuracy_trivial_mayoritario_pct) }} %</div><div class="l">accuracy del dummy</div></div>
+    {% endif %}
+    {% if mejor_modelo %}
+    <div class="card"><div class="n">{{ '%.4f'|format(mejor_modelo.pr_auc) }}</div><div class="l">mejor PR-AUC ({{ mejor_modelo.nombre }})</div></div>
+    {% endif %}
+    {% if variantes_calibracion and 'logistic_plain_platt' in variantes_calibracion %}
+    <div class="card"><div class="n">{{ '%.3f'|format(variantes_calibracion.logistic_plain_platt.umbral_empirico) }}</div><div class="l">umbral óptimo (Platt)</div></div>
+    <div class="card"><div class="n">{{ '%.1f'|format(variantes_calibracion.logistic_plain_platt.ahorro_pct) }} %</div><div class="l">ahorro sobre t=0.5</div></div>
+    {% endif %}
+  </div>
+  {% if plausibility %}
+  <p>Auditor de plausibilidad:
+    <span class="veredicto {{ 'sintetico' if plausibility.veredicto == 'probablemente sintético' else 'real' }}">{{ plausibility.veredicto }}</span>
+  </p>
+  {% endif %}
+</section>
+
+<section id="datos">
+  <h2>Los datos</h2>
+  {% if eda %}
+  <h3>Tabla descriptiva</h3>
+  <table>
+    <tr><th>atributo</th><th>n</th><th>nulos</th><th>% nulos</th><th>min</th><th>max</th><th>media</th><th>mediana</th><th>desv. típica</th></tr>
+    {% for fila in eda.descriptiva %}
+    <tr>
+      <td>{{ fila.atributo }}</td><td>{{ fila.n }}</td><td>{{ fila.nulos }}</td>
+      <td>{{ '%.2f'|format(fila.pct_nulos) }}</td><td>{{ '%.2f'|format(fila.min) }}</td>
+      <td>{{ '%.2f'|format(fila.max) }}</td><td>{{ '%.4f'|format(fila.media) }}</td>
+      <td>{{ '%.3f'|format(fila.mediana) }}</td><td>{{ '%.4f'|format(fila.desv_tipica) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p>{{ eda.nulos.lectura }}</p>
+  {% if eda.anomalias_fisicas %}
+  <h3>Anomalías físicas (van a cuarentena)</h3>
+  <table>
+    <tr><th>fila</th><th>atributo</th><th>valor</th><th>violación</th></tr>
+    {% for a in eda.anomalias_fisicas %}
+    <tr><td>{{ a.fila }}</td><td>{{ a.atributo }}</td><td>{{ a.valor }}</td><td>{{ a.violacion }}</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+  <h3>Asociación univariante (AUC de Mann-Whitney)</h3>
+  <table>
+    <tr><th>atributo</th><th>AUC</th><th>p-valor</th><th>dirección</th><th>significativo (5%)</th></tr>
+    {% for fila in eda.asociacion_univariante %}
+    <tr>
+      <td>{{ fila.atributo }}</td><td>{{ '%.4f'|format(fila.auc) }}</td>
+      <td>{{ '%.4f'|format(fila.p_valor) }}</td><td>{{ fila.direccion }}</td>
+      <td>{{ 'sí' if fila.significativo_5pct else 'no' }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p>Correlación máxima |r| = {{ '%.4f'|format(eda.correlaciones.maxima_absoluta.max_abs_r) }}
+     entre {{ eda.correlaciones.maxima_absoluta.par }}.</p>
+  {% if figuras.prevalencia %}<figure><img src="{{ figuras.prevalencia }}" alt="Prevalencia"><figcaption>Balance de clases y accuracy trivial.</figcaption></figure>{% endif %}
+  {% if figuras.histogramas %}<figure><img src="{{ figuras.histogramas }}" alt="Histogramas"><figcaption>Distribución de cada atributo, por clase.</figcaption></figure>{% endif %}
+  {% if figuras.boxplots %}<figure><img src="{{ figuras.boxplots }}" alt="Boxplots"><figcaption>Cada atributo frente a la clase.</figcaption></figure>{% endif %}
+  {% else %}
+  <p class="missing">EDA no generado todavía -- ejecuta <code>pdm-cli eda --dataset {{ dataset }}</code>.</p>
+  {% endif %}
+</section>
+
+<section id="plausibilidad">
+  <h2>¿Son plausibles estos datos?</h2>
+  {% if plausibility %}
+  <p>Veredicto:
+    <span class="veredicto {{ 'sintetico' if plausibility.veredicto == 'probablemente sintético' else 'real' }}">{{ plausibility.veredicto }}</span>
+  </p>
+  <ul class="evidencia">
+    {% for e in plausibility.evidencia %}<li>{{ e }}</li>{% endfor %}
+  </ul>
+  <p>Correlación máxima |r| = {{ '%.4f'|format(plausibility.correlacion.max_abs_r) }}
+     (umbral {{ plausibility.correlacion.umbral }}). Cadena física esperada: {{ plausibility.correlacion.cadena_fisica_esperada }}.</p>
+  {% if figuras.correlacion %}<figure><img src="{{ figuras.correlacion }}" alt="Correlación"><figcaption>Matriz de correlación, escala fija [-1, 1].</figcaption></figure>{% endif %}
+  {% else %}
+  <p class="missing">Auditoría de plausibilidad no generada todavía -- ejecuta <code>pdm-cli validate --dataset {{ dataset }}</code>.</p>
+  {% endif %}
+</section>
+
+<section id="contrato">
+  <h2>Contrato de datos y cuarentena</h2>
+  {% if validation %}
+  <div class="cards">
+    <div class="card"><div class="n">{{ validation.n_filas_leidas }}</div><div class="l">filas leídas</div></div>
+    <div class="card"><div class="n">{{ validation.n_validas }}</div><div class="l">válidas</div></div>
+    <div class="card"><div class="n">{{ validation.n_cuarentena }}</div><div class="l">en cuarentena</div></div>
+  </div>
+  {% if validation.motivos_cuarentena %}
+  <h3>Motivos de cuarentena</h3>
+  <table>
+    <tr><th>fila</th><th>motivo</th></tr>
+    {% for m in validation.motivos_cuarentena %}
+    <tr><td>{{ m.index }}</td><td>{{ m.quarantine_reason }}</td></tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+  {% if validation.avisos_calidad %}
+  <h3>Avisos de calidad</h3>
+  <ul class="evidencia">{% for a in validation.avisos_calidad %}<li>{{ a }}</li>{% endfor %}</ul>
+  {% else %}
+  <p>Sin avisos de calidad.</p>
+  {% endif %}
+  {% else %}
+  <p class="missing">Contrato de datos no validado todavía -- ejecuta <code>pdm-cli validate --dataset {{ dataset }}</code>.</p>
+  {% endif %}
+</section>
+
+<section id="resultados">
+  <h2>Resultados: el zoo de modelos, con los baselines primero</h2>
+  {% if metrics %}
+  <p>{{ metrics.n_filas_entrenamiento }} filas de entrenamiento, {{ metrics.n_positivos }} positivos.
+     Protocolo: <code>{{ metrics.protocolo_principal }}</code>.</p>
+  <table>
+    <tr>
+      <th>modelo</th>
+      {% for clave, etiqueta in [('average_precision','PR-AUC'),('roc_auc','ROC-AUC'),('recall','recall'),('precision','precision'),('balanced_accuracy','bal.acc'),('accuracy','accuracy'),('brier_score_loss','Brier')] %}
+      <th>{{ etiqueta }}</th>
+      {% endfor %}
+    </tr>
+    {% for fila in modelos_tabla %}
+    <tr class="{{ 'dummy' if fila.nombre.startswith('dummy') else '' }} {{ 'mejor' if mejor_modelo and fila.nombre == mejor_modelo.nombre else '' }}">
+      <td>{{ fila.nombre }}</td>
+      <td>{{ '%.4f'|format(fila.average_precision) }}</td>
+      <td>{{ '%.4f'|format(fila.roc_auc) if fila.roc_auc is not none else '—' }}</td>
+      <td>{{ '%.4f'|format(fila.recall) }}</td>
+      <td>{{ '%.4f'|format(fila.precision) }}</td>
+      <td>{{ '%.4f'|format(fila.balanced_accuracy) }}</td>
+      <td>{{ '%.4f'|format(fila.accuracy) }}</td>
+      <td>{{ '%.4f'|format(fila.brier_score_loss) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <p class="footnote">Las filas <code>dummy_*</code> van primero (CLAUDE.md regla dura 1): cualquier accuracy por debajo de <code>dummy_most_frequent</code> es peor que no hacer nada.</p>
+  {% if figuras.curvas_pr_roc %}<figure><img src="{{ figuras.curvas_pr_roc }}" alt="Curvas PR y ROC"><figcaption>Predicciones out-of-fold, un único StratifiedKFold(5).</figcaption></figure>{% endif %}
+  {% else %}
+  <p class="missing">Modelos no entrenados todavía -- ejecuta <code>pdm-cli run --dataset {{ dataset }}</code>.</p>
+  {% endif %}
+</section>
+
+<section id="umbral">
+  <h2>El umbral 0.5 es una decisión, no un valor por defecto</h2>
+  {% if calibration %}
+  <h3>Matriz de coste (CLP, supuestos declarados)</h3>
+  <table class="cost-table">
+    <tr><th>resultado</th><th>coste</th></tr>
+    <tr><td>falso negativo</td><td class="neg">{{ '{:,.0f}'.format(calibration.costs.cost_false_negative) }}</td></tr>
+    <tr><td>falso positivo</td><td class="neg">{{ '{:,.0f}'.format(calibration.costs.cost_false_positive) }}</td></tr>
+    <tr><td>verdadero positivo</td><td class="neg">{{ '{:,.0f}'.format(calibration.costs.cost_true_positive) }}</td></tr>
+    <tr><td>verdadero negativo</td><td class="pos">0</td></tr>
+  </table>
+  <p>Umbral teórico t* = <code>{{ '%.4f'|format(calibration.umbral_teorico) }}</code> (óptimo solo si el modelo está perfectamente calibrado).</p>
+  {% if figuras.cost_vs_threshold %}<figure><img src="{{ figuras.cost_vs_threshold }}" alt="Coste vs umbral"><figcaption>Coste total frente al umbral, t=0.5 frente al umbral empírico.</figcaption></figure>{% endif %}
+  {% else %}
+  <p class="missing">Calibración no ejecutada todavía -- ejecuta <code>pdm-cli calibrate --dataset {{ dataset }}</code>.</p>
+  {% endif %}
+</section>
+
+<section id="calibracion">
+  <h2>Calibración de probabilidades</h2>
+  {% if variantes_calibracion %}
+  <table>
+    <tr><th>variante</th><th>Brier</th><th>PR-AUC</th><th>umbral empírico</th><th>ahorro</th></tr>
+    {% for nombre, v in variantes_calibracion.items() %}
+    <tr>
+      <td>{{ v.etiqueta }}</td>
+      <td>{{ '%.4f'|format(v.brier_score) }}</td>
+      <td>{{ '%.4f'|format(v.pr_auc) }}</td>
+      <td>{{ '%.3f'|format(v.umbral_empirico) }}</td>
+      <td>{{ '%.1f'|format(v.ahorro_pct) }} %</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% if figuras.calibration_curve %}<figure><img src="{{ figuras.calibration_curve }}" alt="Curva de fiabilidad"><figcaption>Probabilidad predicha frente a frecuencia observada, por bin.</figcaption></figure>{% endif %}
+  {% else %}
+  <p class="missing">Calibración no ejecutada todavía -- ejecuta <code>pdm-cli calibrate --dataset {{ dataset }}</code>.</p>
+  {% endif %}
+</section>
+
+<section id="explicabilidad">
+  <h2>Explicabilidad</h2>
+  {% if explainability %}
+  <h3>Importancia media |SHAP|</h3>
+  <table>
+    <tr><th>atributo</th><th>importancia</th></tr>
+    {% for atributo, valor in explainability.shap_importancia_media.items() %}
+    <tr><td>{{ atributo }}</td><td>{{ '%.4f'|format(valor) }}</td></tr>
+    {% endfor %}
+  </table>
+  {% if figuras.shap_beeswarm %}<figure><img src="{{ figuras.shap_beeswarm }}" alt="SHAP beeswarm"><figcaption>Contribución SHAP por atributo, logistic_plain.</figcaption></figure>{% endif %}
+  {% if figuras.shap_waterfalls %}<figure><img src="{{ figuras.shap_waterfalls }}" alt="SHAP waterfalls"><figcaption>Contribución por atributo en cada caso positivo (muestra si hay muchos).</figcaption></figure>{% endif %}
+  {% if figuras.tree_render %}<figure><img src="{{ figuras.tree_render }}" alt="Árbol renderizado"><figcaption>tree_shallow_balanced ajustado sobre todo el dataset.</figcaption></figure>{% endif %}
+  <h3>Estabilidad de la raíz del árbol ({{ explainability.estabilidad_raiz_arbol.n_boot }} bootstraps)</h3>
+  <table>
+    <tr><th>atributo</th><th>% de bootstraps como raíz</th></tr>
+    {% for atributo, pct in explainability.estabilidad_raiz_arbol.porcentaje_raiz_por_atributo.items() %}
+    <tr><td>{{ atributo }}</td><td>{{ '%.1f'|format(pct) }} %</td></tr>
+    {% endfor %}
+  </table>
+  {% if figuras.tree_root_stability %}<figure><img src="{{ figuras.tree_root_stability }}" alt="Estabilidad de la raíz"><figcaption>% de bootstraps en que cada atributo fue el primer corte.</figcaption></figure>{% endif %}
+  {% else %}
+  <p class="missing">Explicabilidad no generada todavía -- ejecuta <code>pdm-cli explain --dataset {{ dataset }}</code>.</p>
+  {% endif %}
+</section>
+
+<section id="limites">
+  <h2>Qué NO podemos afirmar</h2>
+  {% if limits %}
+  <p>IC de Wilson del recall ({{ limits.recall_wilson_ci_ilustrativo_aciertos }}/{{ limits.recall_wilson_ci_ilustrativo_n }} aciertos, 80 % ilustrativo):
+     <code>[{{ '%.3f'|format(limits.recall_wilson_ci_ilustrativo[0]) }}, {{ '%.3f'|format(limits.recall_wilson_ci_ilustrativo[1]) }}]</code></p>
+  <table>
+    <tr><th>margen deseado</th><th>fallos necesarios</th><th>ciclos de máquina</th></tr>
+    {% for clave, p in limits.presupuesto_estadistico.items() %}
+    <tr><td>±{{ '%.0f'|format(p.margen_pp) }} pp</td><td>{{ p.fallos_necesarios }}</td><td>{{ p.ciclos_de_maquina_necesarios }}</td></tr>
+    {% endfor %}
+  </table>
+  {% if figuras.learning_curve %}<figure><img src="{{ figuras.learning_curve }}" alt="Curva de aprendizaje"><figcaption>PR-AUC frente a tamaño de entrenamiento, con banda de ±1 desviación.</figcaption></figure>{% endif %}
+  {% else %}
+  <p class="missing">Límites estadísticos no calculados todavía -- ejecuta <code>pdm-cli limits --dataset {{ dataset }}</code>.</p>
+  {% endif %}
+</section>
+
+<p class="footnote">Generado por <code>pdm-cli report --dataset {{ dataset }}</code> — predictive-maintenance-pipeline, @ajmedinaa-gif. Cero dependencias de red: CSS y figuras están incrustados en este mismo fichero.</p>
+
+</div>
+</body>
+</html>

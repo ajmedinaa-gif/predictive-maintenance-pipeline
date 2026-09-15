@@ -380,6 +380,19 @@ def calibrate_command(
     figures_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["figures"] / dataset
     figures_dir.mkdir(parents=True, exist_ok=True)
 
+    # El modelo que decide el proyecto (CLAUDE.md §9.2): logistic_plain + Platt.
+    # Sus predicciones out-of-fold alimentan el gráfico de coste Y se guardan
+    # en el JSON (Fase 5, Bloque B) para que la pestaña "Decisión" del
+    # dashboard recalcule umbral/matriz/coste en vivo sin reentrenar nada.
+    y_true_oof_mejor, y_score_oof_mejor, _ = evaluate.out_of_fold_predictions(
+        calibration.VARIANT_BUILDERS["logistic_plain_platt"](settings.seed, 3),
+        X,
+        y,
+        seed=settings.seed,
+        n_splits=5,
+        positive_label=spec.positive_label,
+    )
+
     informe = report.build_calibration_report(
         dataset=dataset,
         n_filas=len(df),
@@ -393,6 +406,8 @@ def calibrate_command(
         variantes=variantes,
         reliability_curves=reliability_curves,
         brier_decompositions=brier_decomps,
+        oof_y_true=y_true_oof_mejor.tolist(),
+        oof_y_score=y_score_oof_mejor.tolist(),
     )
     ruta_json = report.write_calibration_report(
         informe, reports_dir / f"calibration_{dataset}.json"
@@ -407,16 +422,6 @@ def calibrate_command(
         figures_dir / "calibration_curve.png",
     )
 
-    # El gráfico de coste usa el modelo que decide el proyecto (CLAUDE.md §9.2):
-    # logistic_plain + Platt.
-    y_true_oof_mejor, y_score_oof_mejor, _ = evaluate.out_of_fold_predictions(
-        calibration.VARIANT_BUILDERS["logistic_plain_platt"](settings.seed, 3),
-        X,
-        y,
-        seed=settings.seed,
-        n_splits=5,
-        positive_label=spec.positive_label,
-    )
     curva_coste = threshold.cost_curve(y_true_oof_mejor, y_score_oof_mejor, costs)
     t_empirico_mejor = variantes["logistic_plain_platt"]["umbral_empirico"]
     ruta_coste = figures.figure_cost_vs_threshold(
@@ -473,14 +478,22 @@ def explain_command(
         shap_resultado, X, spec, figures_dir / "shap_beeswarm.png"
     )
     ruta_waterfalls = figures.figure_shap_waterfalls_positives(
-        shap_resultado, y, spec, figures_dir / "shap_waterfalls_positivos.png"
+        shap_resultado,
+        y,
+        spec,
+        figures_dir / "shap_waterfalls_positivos.png",
+        max_cases=20,
     )
     ruta_estabilidad = figures.figure_tree_root_stability(
         stability, spec, figures_dir / "tree_root_stability.png"
     )
+    arbol = explain.fit_tree_shallow_balanced(X, y, seed=settings.seed)
+    ruta_arbol = figures.figure_tree_render(
+        arbol, list(X.columns), spec, figures_dir / "tree_render.png"
+    )
 
     typer.echo(f"\nInforme JSON: {_mostrar_ruta(ruta_json)}")
-    for ruta in (ruta_beeswarm, ruta_waterfalls, ruta_estabilidad):
+    for ruta in (ruta_beeswarm, ruta_waterfalls, ruta_estabilidad, ruta_arbol):
         typer.echo(f"Figura: {_mostrar_ruta(ruta)}")
 
 
@@ -552,6 +565,37 @@ def limits_command(
 
     typer.echo(f"\nInforme JSON: {_mostrar_ruta(ruta_json)}")
     typer.echo(f"Figura: {_mostrar_ruta(ruta_figura)}")
+
+
+@app.command(name="report")
+def report_command(
+    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a informar."),
+) -> None:
+    """Informe HTML autocontenido (CLAUDE.md §15): `reports/report_<dataset>.html`.
+
+    Lee los `reports/*.json` y las figuras PNG ya generados por `eda`,
+    `validate`, `run`, `calibrate`, `explain` y `limits` -- no reentrena ni
+    dibuja nada. Las secciones cuyo informe aún no existe se muestran como
+    "no generado todavía" en vez de fallar. Cero dependencias de red: CSS y
+    figuras van incrustados en el propio HTML (figuras en base64).
+    """
+    _configurar_logging()
+    config_yaml = datasets.load_config()
+    reports_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["reports"]
+    figures_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["figures"]
+
+    contexto = report.build_html_report_context(dataset, reports_dir, figures_dir)
+    html = report.render_html_report(contexto)
+    ruta_html = report.write_html_report(html, reports_dir / f"report_{dataset}.html")
+
+    secciones_ausentes = [
+        clave
+        for clave in ("eda", "validation", "plausibility", "metrics", "calibration", "limits")
+        if contexto[clave] is None
+    ]
+    typer.echo(f"Informe HTML: {_mostrar_ruta(ruta_html)}")
+    if secciones_ausentes:
+        typer.echo(f"Secciones sin generar todavía: {', '.join(secciones_ausentes)}")
 
 
 @app.command(name="compare")
