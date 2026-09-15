@@ -136,3 +136,26 @@ def test_figure_learning_curve_writes_nonempty_png(lab180_spec, tmp_path):
     ruta = figures.figure_learning_curve(curva, lab180_spec, tmp_path / "learning_curve.png")
     assert ruta.exists()
     assert ruta.stat().st_size > 0
+
+
+def test_figure_learning_curves_comparison_writes_nonempty_png(tmp_path):
+    curva_lab180 = pd.DataFrame(
+        {
+            "n_entrenamiento": [35, 87, 121],
+            "pr_auc_media": [0.735, 0.729, 0.630],
+            "pr_auc_desv": [0.301, 0.341, 0.266],
+        }
+    )
+    curva_ai4i2020 = pd.DataFrame(
+        {
+            "n_entrenamiento": [2000, 4880, 6800],
+            "pr_auc_media": [0.426, 0.452, 0.454],
+            "pr_auc_desv": [0.071, 0.041, 0.044],
+        }
+    )
+    ruta = figures.figure_learning_curves_comparison(
+        {"lab180": (curva_lab180, 179), "ai4i2020": (curva_ai4i2020, 10000)},
+        tmp_path / "comparacion_learning_curve.png",
+    )
+    assert ruta.exists()
+    assert ruta.stat().st_size > 0

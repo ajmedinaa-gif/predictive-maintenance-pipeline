@@ -308,8 +308,19 @@
 
 <section id="limites">
   <h2>Qué NO podemos afirmar</h2>
+
+  {% if comparison_dataset %}
+  <p><strong>Recall MEDIDO</strong> (<code>logistic_plain</code> + Platt, al umbral óptimo por coste,
+     {{ comparison_dataset.recall_platt_tp }}/{{ comparison_dataset.recall_platt_n_positivos }} aciertos) --
+     IC de Wilson:
+     <code>[{{ '%.3f'|format(comparison_dataset.recall_wilson_ci_platt[0]) }}, {{ '%.3f'|format(comparison_dataset.recall_wilson_ci_platt[1]) }}]</code></p>
+  {% else %}
+  <p class="missing">Recall medido no disponible todavía -- ejecuta <code>pdm-cli compare</code> (requiere ambos datasets).</p>
+  {% endif %}
+
   {% if limits %}
-  <p>IC de Wilson del recall ({{ limits.recall_wilson_ci_ilustrativo_aciertos }}/{{ limits.recall_wilson_ci_ilustrativo_n }} aciertos, 80 % ilustrativo):
+  <p>IC de Wilson para un recall <strong>OBJETIVO</strong> del 80 % (supuesto de diseño muestral,
+     no una medición, n={{ limits.recall_wilson_ci_ilustrativo_n }}):
      <code>[{{ '%.3f'|format(limits.recall_wilson_ci_ilustrativo[0]) }}, {{ '%.3f'|format(limits.recall_wilson_ci_ilustrativo[1]) }}]</code></p>
   <table>
     <tr><th>margen deseado</th><th>fallos necesarios</th><th>ciclos de máquina</th></tr>

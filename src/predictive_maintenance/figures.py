@@ -561,6 +561,64 @@ def figure_shap_waterfalls_positives(
     return path
 
 
+def figure_learning_curves_comparison(
+    curvas: dict[str, tuple[pd.DataFrame, int]], path: Path
+) -> Path:
+    """Curvas de aprendizaje de ambos datasets en el mismo eje, normalizado por tamaño.
+
+    `curvas[dataset] = (df, n_filas)`: `df` es la salida de
+    `power.learning_curve_pr_auc` (columnas `n_entrenamiento`, `pr_auc_media`,
+    `pr_auc_desv`, ya en `reports/limits_<dataset>.json`); `n_filas` el
+    tamaño total de ESE dataset. El eje x se normaliza a
+    `n_entrenamiento / n_filas` porque 179 y 10 000 no son comparables en
+    valor absoluto -- la fracción del dataset sí lo es. Es la prueba visual
+    más directa del proyecto de que el tamaño muestral es el problema: la
+    curva de `ai4i2020` sube con bandas estrechas; la de `lab180` baja con
+    bandas de hasta ±0.30 -- no es una curva de aprendizaje, es ruido de
+    muestreo (CLAUDE.md §10.2).
+    """
+    fig, ax = plt.subplots(figsize=(7.5, 5.2))
+    colores = {"lab180": COLOR_POSITIVA, "ai4i2020": COLOR_NEGATIVA}
+
+    for nombre_dataset, (df, n_filas) in curvas.items():
+        color = colores.get(nombre_dataset, "gray")
+        x = df["n_entrenamiento"] / n_filas
+        media = df["pr_auc_media"]
+        desv = df["pr_auc_desv"]
+        ax.plot(
+            x,
+            media,
+            marker="o",
+            color=color,
+            linewidth=1.8,
+            label=f"{nombre_dataset} (n={n_filas})",
+        )
+        ax.fill_between(x, media - desv, media + desv, color=color, alpha=0.2)
+
+    ax.set_xlabel("fracción del dataset usada para entrenar", fontsize=9)
+    ax.set_ylabel("PR-AUC (StratifiedKFold)", fontsize=9)
+    ax.set_ylim(-0.05, 1.05)
+    ax.set_title(
+        "Con 10 000 filas la curva es una curva; con 180, es ruido",
+        fontsize=12,
+        loc="left",
+    )
+    ax.legend(fontsize=9, loc="lower right")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    fig.text(
+        0.01,
+        0.01,
+        "bandas = ±1 desviación · StratifiedKFold(5), sin suavizar",
+        fontsize=7,
+        color="gray",
+        ha="left",
+        va="bottom",
+    )
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
+
+
 def figure_tree_render(arbol, columnas: list[str], spec: datasets.DatasetSpec, path: Path) -> Path:
     """Dibuja `tree_shallow_balanced` ya ajustado sobre todo el dataset (pestaña Explicabilidad).
 

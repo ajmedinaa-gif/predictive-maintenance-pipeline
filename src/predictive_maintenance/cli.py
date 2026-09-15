@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 import logging
 
+import pandas as pd
 import typer
 
 from predictive_maintenance import (
@@ -513,14 +514,17 @@ def limits_command(
     )
 
     # Ilustración del IC de Wilson anclada a la escala REAL de `dataset`, no a
-    # un ejemplo fijo: con `lab180` (10 positivos) esto reproduce exactamente
-    # el "8/10" de CLAUDE.md §10.3; con `ai4i2020` (339 positivos) ilustra en
-    # cambio cuánto se estrecha el IC al tener más de 30 veces más positivos.
+    # un ejemplo fijo: con `lab180` (10 positivos) el conteo supuesto
+    # coincide con el "8/10" de CLAUDE.md §10.3; con `ai4i2020` (339
+    # positivos) ilustra en cambio cuánto se estrecha el IC con más de 30
+    # veces más positivos. `aciertos_ilustrativos` es un SUPUESTO de diseño
+    # muestral (round(0.8 * n_positivos)), no una medición -- nunca se
+    # imprime como "aciertos": eso sugeriría un conteo real.
     aciertos_ilustrativos = round(0.8 * n_positivos)
     ic_ilustrativo = evaluate.recall_wilson_ci(aciertos_ilustrativos, n_positivos)
     typer.echo(
-        f"IC de Wilson del recall ({aciertos_ilustrativos}/{n_positivos} aciertos, "
-        f"80% ilustrativo): [{ic_ilustrativo[0]:.3f}, {ic_ilustrativo[1]:.3f}]"
+        f"IC de Wilson para un recall OBJETIVO del 80% (supuesto de diseño "
+        f"muestral, n={n_positivos}): [{ic_ilustrativo[0]:.3f}, {ic_ilustrativo[1]:.3f}]"
     )
 
     presupuesto = {}
@@ -617,6 +621,7 @@ def compare_command() -> None:
     curvas: dict[str, tuple] = {}
     prevalencias: dict[str, float] = {}
     etiquetas_modelo: dict[str, str] = {}
+    curvas_aprendizaje: dict[str, tuple] = {}
 
     for nombre_dataset in ("lab180", "ai4i2020"):
         metrics_path = reports_dir / f"metrics_{nombre_dataset}.json"
@@ -682,6 +687,12 @@ def compare_command() -> None:
         prevalencias[nombre_dataset] = n_positivos / n_filas
         etiquetas_modelo[nombre_dataset] = mejor_pr_auc_nombre
 
+        limits_path = reports_dir / f"limits_{nombre_dataset}.json"
+        if limits_path.exists():
+            limits_r = json.loads(limits_path.read_text(encoding="utf-8"))
+            curva_df = pd.DataFrame(limits_r["curva_aprendizaje_pr_auc"])
+            curvas_aprendizaje[nombre_dataset] = (curva_df, limits_r["n_filas"])
+
         typer.echo(
             f"{nombre_dataset}: mejor PR-AUC {mejor_pr_auc_nombre} "
             f"({datasets_info[nombre_dataset]['mejor_modelo_pr_auc_valor']:.4f}) -- "
@@ -699,6 +710,17 @@ def compare_command() -> None:
 
     typer.echo(f"\nInforme JSON: {_mostrar_ruta(ruta_json)}")
     typer.echo(f"Figura: {_mostrar_ruta(ruta_figura)}")
+
+    if len(curvas_aprendizaje) == 2:
+        ruta_learning = figures.figure_learning_curves_comparison(
+            curvas_aprendizaje, figures_dir / "comparacion_learning_curve.png"
+        )
+        typer.echo(f"Figura: {_mostrar_ruta(ruta_learning)}")
+    else:
+        typer.echo(
+            "Aviso: falta limits_<dataset>.json de alguno de los datasets -- "
+            "no se genera comparacion_learning_curve.png (ejecuta `pdm-cli limits` primero)."
+        )
 
 
 if __name__ == "__main__":

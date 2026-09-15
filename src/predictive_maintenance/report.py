@@ -298,6 +298,13 @@ def build_limits_report(
     de "8/10"): con `lab180` (10 positivos) reproduce el IC exacto de CLAUDE.md
     §10.3; con `ai4i2020` (339 positivos) muestra cuánto se estrecha con más
     datos (CLAUDE.md §13, Fase 5).
+
+    IMPORTANTE: `recall_wilson_ci_ilustrativo_aciertos` (`round(0.8 *
+    n_positivos)`) es un SUPUESTO de diseño muestral, no una medición -- quien
+    lo muestre (CLI, dashboard, informe HTML) nunca debe llamarlo "aciertos"
+    a secas, porque sugiere un conteo real. El recall MEDIDO del modelo de la
+    decisión vive en `reports/comparison.json`
+    (`datasets.<nombre>.recall_platt_tp` / `recall_wilson_ci_platt`).
     """
     return _jsonable(
         {
@@ -391,6 +398,8 @@ def build_html_report_context(dataset: str, reports_dir: Path, figures_dir: Path
     calibration_r = _leer_json(reports_dir, f"calibration_{dataset}")
     explainability_r = _leer_json(reports_dir, f"explainability_{dataset}")
     limits_r = _leer_json(reports_dir, f"limits_{dataset}")
+    comparison_r = _leer_json(reports_dir, "comparison")
+    comparison_dataset = comparison_r["datasets"].get(dataset) if comparison_r else None
 
     modelos_tabla = None
     if metrics_r is not None:
@@ -445,6 +454,7 @@ def build_html_report_context(dataset: str, reports_dir: Path, figures_dir: Path
         "variantes_calibracion": variantes_calibracion,
         "explainability": explainability_r,
         "limits": limits_r,
+        "comparison_dataset": comparison_dataset,
         "figuras": figuras,
     }
 

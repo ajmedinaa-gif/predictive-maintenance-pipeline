@@ -185,7 +185,34 @@ def test_html_context_missing_reports_degrades_to_none(tmp_path):
         assert contexto[clave] is None
     assert contexto["modelos_tabla"] is None
     assert contexto["mejor_modelo"] is None
+    assert contexto["comparison_dataset"] is None
     assert all(v is None for v in contexto["figuras"].values())
+
+
+def test_html_context_reads_measured_recall_from_comparison_json(tmp_path):
+    """El recall MEDIDO (no el supuesto ilustrativo) viene de comparison.json."""
+    comparacion = {
+        "datasets": {
+            "lab180": {
+                "recall_platt_tp": 8,
+                "recall_platt_n_positivos": 10,
+                "recall_wilson_ci_platt": [0.490, 0.943],
+            }
+        }
+    }
+    report.write_json_report(comparacion, tmp_path / "comparison.json")
+
+    contexto = report.build_html_report_context(
+        "lab180", reports_dir=tmp_path, figures_dir=tmp_path / "figures"
+    )
+    assert contexto["comparison_dataset"]["recall_platt_tp"] == 8
+
+    html = report.render_html_report(contexto)
+    assert "Recall MEDIDO" in html
+    assert "8/10 aciertos" in html
+    # El texto ilustrativo del presupuesto estadístico nunca debe llamarse
+    # "aciertos" -- es un supuesto de diseño muestral, no una medición.
+    assert "OBJETIVO" in html or "no generado todavía" in html
 
 
 def test_html_render_shows_placeholder_when_reports_are_missing(tmp_path):

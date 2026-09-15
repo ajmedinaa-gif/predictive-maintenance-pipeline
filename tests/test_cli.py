@@ -342,6 +342,16 @@ def test_compare_command_requires_existing_reports(tmp_path, monkeypatch):
     assert "lab180" in result.output
 
 
+def _informe_limits_sintetico(n_filas: int) -> dict:
+    return {
+        "n_filas": n_filas,
+        "curva_aprendizaje_pr_auc": [
+            {"n_entrenamiento": round(n_filas * 0.2), "pr_auc_media": 0.5, "pr_auc_desv": 0.1},
+            {"n_entrenamiento": round(n_filas * 0.6), "pr_auc_media": 0.6, "pr_auc_desv": 0.05},
+        ],
+    }
+
+
 def test_compare_command_writes_comparison_report_and_figure(tmp_path, monkeypatch):
     config_prueba = _config_de_prueba(tmp_path)
     monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
@@ -355,6 +365,9 @@ def test_compare_command_writes_comparison_report_and_figure(tmp_path, monkeypat
         )
         (reports_dir / f"calibration_{nombre}.json").write_text(
             json.dumps(_informe_calibracion_sintetico(n_pos)), encoding="utf-8"
+        )
+        (reports_dir / f"limits_{nombre}.json").write_text(
+            json.dumps(_informe_limits_sintetico(n_filas)), encoding="utf-8"
         )
 
     # `compare` recalcula las curvas out-of-fold del "mejor modelo" sobre datos
@@ -384,6 +397,10 @@ def test_compare_command_writes_comparison_report_and_figure(tmp_path, monkeypat
     ruta_figura = tmp_path / "reports" / "figures" / "comparacion_pr.png"
     assert ruta_figura.exists()
     assert ruta_figura.stat().st_size > 0
+
+    ruta_learning = tmp_path / "reports" / "figures" / "comparacion_learning_curve.png"
+    assert ruta_learning.exists()
+    assert ruta_learning.stat().st_size > 0
 
 
 def test_report_command_writes_self_contained_html(tmp_path, monkeypatch):

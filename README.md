@@ -60,6 +60,9 @@ La de `lab180` es dentada porque cada uno de sus 10 positivos mueve la curva
 de un salto; la de `ai4i2020` es suave y se mantiene muy por encima de su
 propia línea de azar.*
 
+![Curvas de aprendizaje de ambos datasets, eje x normalizado](reports/figures/comparacion_learning_curve.png)
+*Con 10 000 filas la curva es una curva; con 180, es ruido.*
+
 ## Por qué la accuracy miente en este problema
 
 **El clasificador que nunca predice un fallo acierta el 94.41 % de las veces

@@ -49,6 +49,14 @@ def _mostrar_figura(dataset: str, nombre_archivo: str, **kwargs) -> None:
         st.image(str(ruta), use_container_width=True, **kwargs)
 
 
+def _figura_comparacion(nombre_archivo: str) -> Path | None:
+    """Figuras que comparan ambos datasets, guardadas directamente bajo
+    `reports/figures/` (sin subcarpeta por dataset): `comparacion_pr.png`,
+    `comparacion_learning_curve.png`."""
+    ruta = FIGURES_DIR / nombre_archivo
+    return ruta if ruta.exists() else None
+
+
 st.title("🔧 Mantenimiento predictivo industrial")
 st.caption(
     "Pipeline reproducible con validación honesta bajo desbalance de clases — "
@@ -73,6 +81,8 @@ metrics = _load_json(f"metrics_{dataset}")
 calibration_r = _load_json(f"calibration_{dataset}")
 explainability = _load_json(f"explainability_{dataset}")
 limits = _load_json(f"limits_{dataset}")
+comparison_r = _load_json("comparison")
+comparison_dataset = comparison_r["datasets"].get(dataset) if comparison_r else None
 
 tab_datos, tab_modelos, tab_decision, tab_explicabilidad, tab_limites = st.tabs(
     ["📊 Datos", "🧪 Modelos", "💰 Decisión", "🔍 Explicabilidad", "📐 Límites"]
@@ -302,18 +312,34 @@ with tab_explicabilidad:
 # Límites
 # --------------------------------------------------------------------------- #
 with tab_limites:
+    if comparison_dataset is not None:
+        ci_medido = comparison_dataset["recall_wilson_ci_platt"]
+        st.metric(
+            "Recall MEDIDO (logistic_plain + Platt, al umbral óptimo por coste, "
+            f"{comparison_dataset['recall_platt_tp']}/"
+            f"{comparison_dataset['recall_platt_n_positivos']} aciertos)",
+            f"[{ci_medido[0]:.3f}, {ci_medido[1]:.3f}]",
+            help="IC de Wilson sobre el recall REAL del modelo de la decisión "
+            "-- no un supuesto, un conteo medido out-of-fold.",
+        )
+    else:
+        st.info(
+            "Recall medido no disponible todavía. Ejecuta `pdm-cli compare` "
+            "(requiere ambos datasets)."
+        )
+
     if limits is None:
         st.info(f"Límites no calculados todavía. Ejecuta `pdm-cli limits --dataset {dataset}`.")
     else:
         ic = limits["recall_wilson_ci_ilustrativo"]
+        n_ilustrativo = limits["recall_wilson_ci_ilustrativo_n"]
         st.metric(
-            f"IC de Wilson del recall "
-            f"({limits['recall_wilson_ci_ilustrativo_aciertos']}/"
-            f"{limits['recall_wilson_ci_ilustrativo_n']} aciertos, 80 % ilustrativo)",
+            "IC de Wilson para un recall OBJETIVO del 80 % "
+            f"(supuesto de diseño muestral, no una medición, n={n_ilustrativo})",
             f"[{ic[0]:.3f}, {ic[1]:.3f}]",
-            help="Ancho del intervalo = cuánta confianza da esta muestra. Con pocos "
-            "positivos, un IC ancho no es un error de cálculo: es la muestra "
-            "diciendo que no alcanza para decidir nada (CLAUDE.md §10.3).",
+            help="Ancho que TENDRÍA el intervalo si el recall real fuera "
+            "exactamente 0.80 -- alimenta el presupuesto estadístico de abajo, "
+            "no describe el modelo medido (ese es el recall MEDIDO de arriba).",
         )
 
         st.subheader("Presupuesto estadístico")
@@ -330,3 +356,14 @@ with tab_limites:
 
         st.subheader("Curva de aprendizaje (PR-AUC, no suavizada)")
         _mostrar_figura(dataset, "learning_curve.png")
+
+    ruta_comparacion = _figura_comparacion("comparacion_learning_curve.png")
+    if ruta_comparacion is not None:
+        st.subheader("Curvas de aprendizaje de ambos datasets, en el mismo eje")
+        st.image(str(ruta_comparacion), use_container_width=True)
+        st.caption("Con 10 000 filas la curva es una curva; con 180, es ruido.")
+    else:
+        st.info(
+            "Comparación de curvas de aprendizaje no disponible todavía. "
+            "Ejecuta `pdm-cli compare` (requiere `pdm-cli limits` de ambos datasets)."
+        )
