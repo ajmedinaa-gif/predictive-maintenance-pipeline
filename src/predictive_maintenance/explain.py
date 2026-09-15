@@ -73,6 +73,20 @@ def shap_values_logistic(
     }
 
 
+def fit_tree_shallow_balanced(X: pd.DataFrame, y: pd.Series, seed: int | None = None):
+    """Ajusta `tree_shallow_balanced` sobre TODO `X, y` (CLAUDE.md §10.1) para dibujarlo.
+
+    Igual que `shap_values_logistic`: es el único árbol que se ajusta sobre el
+    dataset completo, a propósito -- para renderizarlo, no para medir cómo
+    generaliza (eso ya lo mide `evaluate.py` con CV). Devuelve el
+    `DecisionTreeClassifier` ya ajustado, listo para `figures.figure_tree_render`.
+    """
+    seed = _resolve_seed(seed)
+    pipe = pipeline.build_pipeline("tree_shallow_balanced", seed=seed)
+    pipe.fit(X, y)
+    return pipe.named_steps["classifier"]
+
+
 def tree_root_stability(
     X: pd.DataFrame, y: pd.Series, n_boot: int = 300, seed: int | None = None
 ) -> dict:

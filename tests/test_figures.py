@@ -117,6 +117,14 @@ def test_figure_tree_root_stability_writes_nonempty_png(lab180_valid_xy, lab180_
     assert ruta.stat().st_size > 0
 
 
+def test_figure_tree_render_writes_nonempty_png(lab180_valid_xy, lab180_spec, tmp_path):
+    X, y = lab180_valid_xy
+    arbol = explain.fit_tree_shallow_balanced(X, y, seed=42)
+    ruta = figures.figure_tree_render(arbol, list(X.columns), lab180_spec, tmp_path / "tree.png")
+    assert ruta.exists()
+    assert ruta.stat().st_size > 0
+
+
 def test_figure_learning_curve_writes_nonempty_png(lab180_spec, tmp_path):
     curva = pd.DataFrame(
         {

@@ -502,16 +502,27 @@ def figure_shap_beeswarm(
 
 
 def figure_shap_waterfalls_positives(
-    shap_result: dict, y: pd.Series, spec: datasets.DatasetSpec, path: Path
+    shap_result: dict,
+    y: pd.Series,
+    spec: datasets.DatasetSpec,
+    path: Path,
+    max_cases: int | None = None,
 ) -> Path:
-    """Un mini-waterfall por cada caso `failure="yes"`: qué atributo empujó esa predicción y cuánto.
+    """Un mini-waterfall por cada caso positivo: qué atributo empujó esa predicción y cuánto.
 
     Barras horizontales con la contribución SHAP (log-odds) de cada atributo,
-    ordenadas por magnitud, para cada uno de los 10 casos positivos de
-    CLAUDE.md §6.2 — son pocos como para no poder mirarlos uno a uno.
+    ordenadas por magnitud. Pensado para `lab180` (10 positivos, CLAUDE.md
+    §6.2): son pocos como para no poder mirarlos uno a uno. Con `max_cases`
+    se limita a los primeros `max_cases` (por índice de fila, determinista) --
+    necesario para `ai4i2020` (339 positivos): sin límite, la figura tendría
+    68 filas de subplots. `None` (por defecto) no limita nada.
     """
     y_str = y.astype(str).reset_index(drop=True)
-    idx_positivos = np.flatnonzero((y_str == "yes").to_numpy())
+    idx_positivos = np.flatnonzero((y_str == spec.positive_label).to_numpy())
+    n_total = len(idx_positivos)
+    limitado = max_cases is not None and n_total > max_cases
+    if limitado:
+        idx_positivos = idx_positivos[:max_cases]
     columnas = [_etiqueta(c) for c in shap_result["columnas"]]
     valores = shap_result["shap_values"]
 
@@ -534,12 +545,51 @@ def figure_shap_waterfalls_positives(
         ax.set_title(f"fila {idx}", fontsize=8)
         ax.tick_params(axis="x", labelsize=7)
 
+    titulo_casos = f"los primeros {n} de {n_total}" if limitado else f"los {n}"
     fig.suptitle(
-        "Contribución SHAP por atributo en cada uno de los 10 casos failure='yes'", fontsize=11
+        f"Contribución SHAP por atributo en {titulo_casos} casos "
+        f"{spec.target}='{spec.positive_label}'",
+        fontsize=11,
     )
     fig.tight_layout(rect=(0, 0.03, 1, 0.95))
-    _pie_de_figura(fig, spec, "naranja empuja hacia 'yes', azul hacia 'no'")
+    nota = "naranja empuja hacia la clase positiva, azul hacia la negativa"
+    if limitado:
+        nota += f" · muestra de {max_cases} sobre {n_total} positivos totales"
+    _pie_de_figura(fig, spec, nota)
     fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
+
+
+def figure_tree_render(arbol, columnas: list[str], spec: datasets.DatasetSpec, path: Path) -> Path:
+    """Dibuja `tree_shallow_balanced` ya ajustado sobre todo el dataset (pestaña Explicabilidad).
+
+    Un solo árbol, no los 300 bootstraps de la estabilidad: este es el árbol
+    concreto que se entrenaría hoy sobre todos los datos, para leerlo entero.
+    La estabilidad de su raíz bajo remuestreo es una pregunta aparte
+    (`figure_tree_root_stability`, CLAUDE.md §10.1).
+    """
+    from sklearn.tree import plot_tree
+
+    fig, ax = plt.subplots(figsize=(max(10.0, 3.0 * 2 ** arbol.get_depth()), 6.0))
+    plot_tree(
+        arbol,
+        feature_names=[_etiqueta(c) for c in columnas],
+        class_names=list(arbol.classes_),
+        filled=True,
+        rounded=True,
+        fontsize=8,
+        ax=ax,
+    )
+    ax.set_title(
+        f"tree_shallow_balanced (max_depth=3, min_samples_leaf=5) — "
+        f"profundidad real {arbol.get_depth()}",
+        fontsize=11,
+        loc="left",
+    )
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    _pie_de_figura(fig, spec, "ajustado sobre TODO el dataset, no un fold de CV")
+    fig.savefig(path, dpi=130)
     plt.close(fig)
     return path
 
