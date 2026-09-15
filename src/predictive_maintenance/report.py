@@ -201,3 +201,95 @@ def build_plausibility_report(informe: plausibility.PlausibilityReport) -> dict:
 def write_plausibility_report(report: dict, path: Path) -> Path:
     """Vuelca el veredicto del auditor de plausibilidad a JSON."""
     return write_json_report(report, path)
+
+
+def build_calibration_report(
+    *,
+    dataset: str,
+    n_filas: int,
+    n_positivos: int,
+    costs: dict,
+    theoretical_threshold: float,
+    protocolo: str,
+    variantes: dict,
+    reliability_curves: dict,
+    brier_decompositions: dict,
+) -> dict:
+    """Payload de la Fase 4, tarea A: la tabla de CLAUDE.md §9.2, medida sobre `n_filas` filas.
+
+    `variantes` es la salida de `calibration.evaluate_cost_variants`;
+    `reliability_curves[nombre]` un `DataFrame` de `calibration.reliability_curve`;
+    `brier_decompositions[nombre]` un `dict` de `calibration.brier_decomposition`.
+    """
+    return _jsonable(
+        {
+            "dataset": dataset,
+            "n_filas": n_filas,
+            "n_positivos": n_positivos,
+            "costs": costs,
+            "umbral_teorico": theoretical_threshold,
+            "protocolo": protocolo,
+            "variantes": variantes,
+            "curvas_fiabilidad": reliability_curves,
+            "descomposicion_brier": brier_decompositions,
+        }
+    )
+
+
+def write_calibration_report(report: dict, path: Path) -> Path:
+    """Vuelca el informe de calibración y umbral por coste a JSON."""
+    return write_json_report(report, path)
+
+
+def build_explainability_report(
+    *,
+    dataset: str,
+    n_filas: int,
+    shap_importancia: dict,
+    shap_casos_positivos: list,
+    tree_stability: dict,
+) -> dict:
+    """Payload de la Fase 4 C: SHAP de `logistic_plain` y estabilidad de la raíz del árbol."""
+    return _jsonable(
+        {
+            "dataset": dataset,
+            "n_filas": n_filas,
+            "shap_importancia_media": shap_importancia,
+            "shap_casos_positivos": shap_casos_positivos,
+            "estabilidad_raiz_arbol": tree_stability,
+        }
+    )
+
+
+def write_explainability_report(report: dict, path: Path) -> Path:
+    """Vuelca el informe de explicabilidad (SHAP + estabilidad del árbol) a JSON."""
+    return write_json_report(report, path)
+
+
+def build_limits_report(
+    *,
+    dataset: str,
+    n_filas: int,
+    n_positivos: int,
+    prevalencia: float,
+    recall_wilson_ci_8_10: tuple,
+    presupuesto: dict,
+    learning_curve: pd.DataFrame,
+) -> dict:
+    """Payload de la Fase 4 C: presupuesto estadístico (CLAUDE.md §10.3) y curva de aprendizaje."""
+    return _jsonable(
+        {
+            "dataset": dataset,
+            "n_filas": n_filas,
+            "n_positivos": n_positivos,
+            "prevalencia": prevalencia,
+            "recall_wilson_ci_8_de_10": list(recall_wilson_ci_8_10),
+            "presupuesto_estadistico": presupuesto,
+            "curva_aprendizaje_pr_auc": learning_curve,
+        }
+    )
+
+
+def write_limits_report(report: dict, path: Path) -> Path:
+    """Vuelca el informe de límites estadísticos a JSON."""
+    return write_json_report(report, path)

@@ -13,17 +13,21 @@ import typer
 
 from predictive_maintenance import (
     __version__,
+    calibration,
     data,
     datasets,
     eda,
     evaluate,
+    explain,
     figures,
     pipeline,
     plausibility,
+    power,
     report,
+    threshold,
 )
 from predictive_maintenance import schema as schema_module
-from predictive_maintenance.config import get_settings
+from predictive_maintenance.config import get_costs, get_settings
 
 app = typer.Typer(
     name="pdm-cli",
@@ -266,6 +270,237 @@ def train_command(
     typer.echo(tabla_md)
     typer.echo(f"Informe JSON: {_mostrar_ruta(ruta_json)}")
     typer.echo(f"Tabla de resultados: {_mostrar_ruta(ruta_md)}")
+    typer.echo(f"Figura: {_mostrar_ruta(ruta_figura)}")
+
+
+def _cargar_xy_validado(dataset: str) -> tuple:
+    spec = datasets.get_spec(dataset)
+    if dataset not in schema_module.SCHEMAS:
+        disponibles = ", ".join(sorted(schema_module.SCHEMAS))
+        typer.echo(f"No hay contrato registrado para {dataset!r}. Disponibles: {disponibles}")
+        raise typer.Exit(code=2)
+    resultado = data.load_validated(spec.path, schema_module.SCHEMAS[dataset], dataset_name=dataset)
+    df = resultado.valid
+    X = df.drop(columns=[spec.target])
+    y = df[spec.target].astype(str)
+    return spec, df, X, y
+
+
+@app.command(name="calibrate")
+def calibrate_command(
+    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a calibrar."),
+) -> None:
+    """Calibra `logistic_plain`, reproduce CLAUDE.md §9.2 y optimiza el umbral por coste.
+
+    Regla dura (CLAUDE.md §2.5): NUNCA combina `class_weight="balanced"` con
+    el umbral por coste — `logistic_balanced` entra en la comparación solo
+    como contraejemplo de esa regla.
+    """
+    _configurar_logging()
+    settings = get_settings()
+    spec, df, X, y = _cargar_xy_validado(dataset)
+    n_positivos = int((y == spec.positive_label).sum())
+
+    costs = get_costs().as_dict()
+    t_teorico = threshold.theoretical_threshold(costs)
+
+    typer.echo(f"\n=== Calibrando {dataset}: {len(df)} filas, {n_positivos} positivos ===")
+    typer.echo(f"Umbral teórico t* = {t_teorico:.4f} (CLAUDE.md §9.1)\n")
+
+    variantes = calibration.evaluate_cost_variants(
+        X, y, costs, seed=settings.seed, positive_label=spec.positive_label
+    )
+
+    reliability_curves = {}
+    brier_decomps = {}
+    for nombre, builder in calibration.VARIANT_BUILDERS.items():
+        y_true_oof, y_score_oof, _ = evaluate.out_of_fold_predictions(
+            builder(settings.seed, 3),
+            X,
+            y,
+            seed=settings.seed,
+            n_splits=5,
+            positive_label=spec.positive_label,
+        )
+        reliability_curves[nombre] = calibration.reliability_curve(
+            y_true_oof, y_score_oof, n_bins=10
+        )
+        brier_decomps[nombre] = calibration.brier_decomposition(y_true_oof, y_score_oof, n_bins=10)
+
+    for nombre, resultado in variantes.items():
+        typer.echo(
+            f"  {calibration.VARIANT_LABELS[nombre]:28s} Brier={resultado['brier_score']:.4f}  "
+            f"PR-AUC={resultado['pr_auc']:.4f}  t_empirico={resultado['umbral_empirico']:.4f}  "
+            f"ahorro={resultado['ahorro_pct']:.1f}%"
+        )
+
+    config_yaml = datasets.load_config()
+    reports_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["reports"]
+    figures_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["figures"] / dataset
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
+    informe = report.build_calibration_report(
+        dataset=dataset,
+        n_filas=len(df),
+        n_positivos=n_positivos,
+        costs=costs,
+        theoretical_threshold=t_teorico,
+        protocolo=(
+            f"StratifiedKFold(n_splits=5, shuffle=True, random_state={settings.seed}); "
+            "umbral optimizado dentro de cada fold de entrenamiento (CLAUDE.md §2.7)"
+        ),
+        variantes=variantes,
+        reliability_curves=reliability_curves,
+        brier_decompositions=brier_decomps,
+    )
+    ruta_json = report.write_calibration_report(
+        informe, reports_dir / f"calibration_{dataset}.json"
+    )
+
+    ruta_calibracion = figures.figure_calibration_curve(
+        {
+            nombre: reliability_curves[nombre]
+            for nombre in ("logistic_plain", "logistic_plain_platt", "logistic_plain_isotonic")
+        },
+        spec,
+        figures_dir / "calibration_curve.png",
+    )
+
+    # El gráfico de coste usa el modelo que decide el proyecto (CLAUDE.md §9.2):
+    # logistic_plain + Platt.
+    y_true_oof_mejor, y_score_oof_mejor, _ = evaluate.out_of_fold_predictions(
+        calibration.VARIANT_BUILDERS["logistic_plain_platt"](settings.seed, 3),
+        X,
+        y,
+        seed=settings.seed,
+        n_splits=5,
+        positive_label=spec.positive_label,
+    )
+    curva_coste = threshold.cost_curve(y_true_oof_mejor, y_score_oof_mejor, costs)
+    t_empirico_mejor = variantes["logistic_plain_platt"]["umbral_empirico"]
+    ruta_coste = figures.figure_cost_vs_threshold(
+        curva_coste, 0.5, t_empirico_mejor, spec, figures_dir / "cost_vs_threshold.png"
+    )
+
+    typer.echo(f"\nInforme JSON: {_mostrar_ruta(ruta_json)}")
+    typer.echo(f"Figura: {_mostrar_ruta(ruta_calibracion)}")
+    typer.echo(f"Figura: {_mostrar_ruta(ruta_coste)}")
+
+
+@app.command(name="explain")
+def explain_command(
+    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a explicar."),
+) -> None:
+    """SHAP de `logistic_plain` y estabilidad de la raíz del árbol (CLAUDE.md §10.1, §12)."""
+    _configurar_logging()
+    settings = get_settings()
+    spec, df, X, y = _cargar_xy_validado(dataset)
+
+    typer.echo(f"\n=== Explicabilidad de {dataset}: {len(df)} filas ===\n")
+
+    shap_resultado = explain.shap_values_logistic(
+        X, y, seed=settings.seed, positive_label=spec.positive_label
+    )
+    importancia, casos_positivos = explain.summarize_shap(shap_resultado, y)
+    typer.echo("--- Importancia media |SHAP| ---")
+    for atributo, valor in importancia.items():
+        typer.echo(f"  {atributo:28s} {valor:.4f}")
+
+    typer.echo("\n--- Estabilidad de la raíz del árbol (300 bootstraps estratificados) ---")
+    stability = explain.tree_root_stability(X, y, n_boot=300, seed=settings.seed)
+    for atributo, pct in stability["porcentaje_raiz_por_atributo"].items():
+        typer.echo(f"  {atributo:28s} {pct:5.1f} %")
+    typer.echo(f"  profundidad efectiva media: {stability['profundidad_efectiva_media']:.2f}")
+
+    config_yaml = datasets.load_config()
+    reports_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["reports"]
+    figures_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["figures"] / dataset
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
+    informe = report.build_explainability_report(
+        dataset=dataset,
+        n_filas=len(df),
+        shap_importancia=importancia,
+        shap_casos_positivos=casos_positivos,
+        tree_stability=stability,
+    )
+    ruta_json = report.write_explainability_report(
+        informe, reports_dir / f"explainability_{dataset}.json"
+    )
+
+    ruta_beeswarm = figures.figure_shap_beeswarm(
+        shap_resultado, X, spec, figures_dir / "shap_beeswarm.png"
+    )
+    ruta_waterfalls = figures.figure_shap_waterfalls_positives(
+        shap_resultado, y, spec, figures_dir / "shap_waterfalls_positivos.png"
+    )
+    ruta_estabilidad = figures.figure_tree_root_stability(
+        stability, spec, figures_dir / "tree_root_stability.png"
+    )
+
+    typer.echo(f"\nInforme JSON: {_mostrar_ruta(ruta_json)}")
+    for ruta in (ruta_beeswarm, ruta_waterfalls, ruta_estabilidad):
+        typer.echo(f"Figura: {_mostrar_ruta(ruta)}")
+
+
+@app.command(name="limits")
+def limits_command(
+    dataset: str = typer.Option("lab180", "--dataset", help="Nombre del dataset a analizar."),
+) -> None:
+    """Presupuesto estadístico y curva de aprendizaje (CLAUDE.md §10.2, §10.3)."""
+    _configurar_logging()
+    settings = get_settings()
+    spec, df, X, y = _cargar_xy_validado(dataset)
+    n_positivos = int((y == spec.positive_label).sum())
+    prevalencia = n_positivos / len(df)
+
+    typer.echo(
+        f"\n=== Límites estadísticos de {dataset}: {len(df)} filas, {n_positivos} positivos ===\n"
+    )
+
+    ic_8_10 = evaluate.recall_wilson_ci(8, 10)
+    typer.echo(f"IC de Wilson del recall (8/10 aciertos): [{ic_8_10[0]:.3f}, {ic_8_10[1]:.3f}]")
+
+    presupuesto = {}
+    for margen in (0.10, 0.05):
+        n_necesarios = power.required_positives(target_recall=0.80, margin=margen)
+        n_obs = power.required_observations(n_necesarios, prevalencia)
+        presupuesto[f"margen_{margen:.2f}"] = {
+            "margen_pp": margen * 100,
+            "fallos_necesarios": n_necesarios,
+            "ciclos_de_maquina_necesarios": n_obs,
+        }
+        typer.echo(
+            f"  margen ±{margen * 100:.0f} pp -> {n_necesarios} fallos "
+            f"-> {n_obs} ciclos de máquina a la prevalencia actual"
+        )
+
+    curva_aprendizaje = power.learning_curve_pr_auc(X, y, seed=settings.seed)
+    typer.echo(
+        "\n--- Curva de aprendizaje PR-AUC (NO es creciente, bandas anchas: CLAUDE.md §10.2) ---"
+    )
+    typer.echo(curva_aprendizaje.round(4).to_string(index=False))
+
+    config_yaml = datasets.load_config()
+    reports_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["reports"]
+    figures_dir = datasets.PROJECT_ROOT / config_yaml["paths"]["figures"] / dataset
+    figures_dir.mkdir(parents=True, exist_ok=True)
+
+    informe = report.build_limits_report(
+        dataset=dataset,
+        n_filas=len(df),
+        n_positivos=n_positivos,
+        prevalencia=prevalencia,
+        recall_wilson_ci_8_10=ic_8_10,
+        presupuesto=presupuesto,
+        learning_curve=curva_aprendizaje,
+    )
+    ruta_json = report.write_limits_report(informe, reports_dir / f"limits_{dataset}.json")
+    ruta_figura = figures.figure_learning_curve(
+        curva_aprendizaje, spec, figures_dir / "learning_curve.png"
+    )
+
+    typer.echo(f"\nInforme JSON: {_mostrar_ruta(ruta_json)}")
     typer.echo(f"Figura: {_mostrar_ruta(ruta_figura)}")
 
 

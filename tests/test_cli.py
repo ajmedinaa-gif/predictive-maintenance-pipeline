@@ -3,6 +3,7 @@
 import copy
 import json
 
+import pytest
 from typer.testing import CliRunner
 
 from predictive_maintenance import __version__, cli, data, datasets
@@ -132,5 +133,92 @@ def test_train_command_writes_metrics_report_results_table_and_figure(tmp_path, 
     assert tabla.strip().splitlines()[0].startswith("| modelo | PR-AUC")
 
     ruta_figura = tmp_path / "reports" / "figures" / "lab180" / "curvas_pr_roc.png"
+    assert ruta_figura.exists()
+    assert ruta_figura.stat().st_size > 0
+
+
+# --------------------------------------------------------------------------- #
+# Fase 4: calibrate / explain / limits
+# --------------------------------------------------------------------------- #
+
+
+def _config_de_prueba(tmp_path):
+    # Calcula `config_prueba` UNA VEZ, ANTES de parchear `load_config`: si el
+    # lambda de `monkeypatch.setattr` llamara aquí dentro a
+    # `datasets.load_config()` (ya parcheado a ese mismo lambda), sería
+    # recursión infinita -- el bug que tenía la primera versión de este
+    # helper.
+    config_real = datasets.load_config()
+    config_prueba = copy.deepcopy(config_real)
+    raw_dir_real = datasets.PROJECT_ROOT / config_real["paths"]["data_raw"]
+    config_prueba["paths"]["data_raw"] = str(raw_dir_real)
+    config_prueba["paths"]["reports"] = str(tmp_path / "reports")
+    config_prueba["paths"]["figures"] = str(tmp_path / "reports" / "figures")
+    return config_prueba
+
+
+def test_calibrate_command_writes_report_and_figures(tmp_path, monkeypatch):
+    config_prueba = _config_de_prueba(tmp_path)
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    result = runner.invoke(app, ["calibrate", "--dataset", "lab180"])
+    assert result.exit_code == 0, result.output
+    assert "logistic plain + Platt" in result.output
+
+    ruta_json = tmp_path / "reports" / "calibration_lab180.json"
+    assert ruta_json.exists()
+    informe = json.loads(ruta_json.read_text(encoding="utf-8"))
+    assert informe["dataset"] == "lab180"
+    assert set(informe["variantes"]) == {
+        "logistic_balanced",
+        "logistic_plain",
+        "logistic_plain_platt",
+        "logistic_plain_isotonic",
+    }
+    assert informe["umbral_teorico"] == pytest.approx(0.0556, abs=1e-3)
+
+    figuras_dir = tmp_path / "reports" / "figures" / "lab180"
+    for nombre in ("calibration_curve.png", "cost_vs_threshold.png"):
+        ruta = figuras_dir / nombre
+        assert ruta.exists()
+        assert ruta.stat().st_size > 0
+
+
+def test_explain_command_writes_report_and_figures(tmp_path, monkeypatch):
+    config_prueba = _config_de_prueba(tmp_path)
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    result = runner.invoke(app, ["explain", "--dataset", "lab180"])
+    assert result.exit_code == 0, result.output
+    assert "vibration_mm_s" in result.output
+
+    ruta_json = tmp_path / "reports" / "explainability_lab180.json"
+    assert ruta_json.exists()
+    informe = json.loads(ruta_json.read_text(encoding="utf-8"))
+    assert len(informe["shap_casos_positivos"]) == 10
+    assert informe["estabilidad_raiz_arbol"]["n_boot"] == 300
+
+    figuras_dir = tmp_path / "reports" / "figures" / "lab180"
+    for nombre in ("shap_beeswarm.png", "shap_waterfalls_positivos.png", "tree_root_stability.png"):
+        ruta = figuras_dir / nombre
+        assert ruta.exists()
+        assert ruta.stat().st_size > 0
+
+
+def test_limits_command_writes_report_and_figure(tmp_path, monkeypatch):
+    config_prueba = _config_de_prueba(tmp_path)
+    monkeypatch.setattr(datasets, "load_config", lambda: config_prueba)
+
+    result = runner.invoke(app, ["limits", "--dataset", "lab180"])
+    assert result.exit_code == 0, result.output
+    assert "0.490" in result.output
+
+    ruta_json = tmp_path / "reports" / "limits_lab180.json"
+    assert ruta_json.exists()
+    informe = json.loads(ruta_json.read_text(encoding="utf-8"))
+    assert informe["presupuesto_estadistico"]["margen_0.10"]["fallos_necesarios"] == 62
+    assert informe["presupuesto_estadistico"]["margen_0.05"]["fallos_necesarios"] == 246
+
+    ruta_figura = tmp_path / "reports" / "figures" / "lab180" / "learning_curve.png"
     assert ruta_figura.exists()
     assert ruta_figura.stat().st_size > 0

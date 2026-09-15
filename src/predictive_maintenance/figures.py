@@ -301,3 +301,250 @@ def figure_pr_roc_curves(
     fig.savefig(path, dpi=150)
     plt.close(fig)
     return path
+
+
+# --------------------------------------------------------------------------- #
+# Fase 4: calibración, umbral por coste, explicabilidad y límites
+# --------------------------------------------------------------------------- #
+
+
+def figure_calibration_curve(
+    curvas: dict[str, pd.DataFrame], spec: datasets.DatasetSpec, path: Path
+) -> Path:
+    """Curva de fiabilidad de varias variantes, con la diagonal de calibración ideal (CLAUDE.md §9).
+
+    `curvas[nombre]` es un `DataFrame` de `calibration.reliability_curve`
+    (columnas `prob_media_predicha`, `frecuencia_observada`); los bins vacíos
+    (`NaN`) no se dibujan.
+    """
+    fig, ax = plt.subplots(figsize=(6.5, 6.0))
+    ax.plot([0, 1], [0, 1], color="black", linestyle="--", linewidth=1.2, label="calibración ideal")
+    colores = plt.get_cmap("tab10").colors
+    for i, (nombre, curva) in enumerate(curvas.items()):
+        validos = curva.dropna(subset=["prob_media_predicha"])
+        ax.plot(
+            validos["prob_media_predicha"],
+            validos["frecuencia_observada"],
+            marker="o",
+            linewidth=1.6,
+            color=colores[i % len(colores)],
+            label=nombre,
+        )
+    ax.set_xlim(-0.02, 1.02)
+    ax.set_ylim(-0.02, 1.02)
+    ax.set_xlabel("probabilidad media predicha (por bin)", fontsize=9)
+    ax.set_ylabel("frecuencia observada de 'yes' (por bin)", fontsize=9)
+    ax.set_title(
+        "Curva de fiabilidad: ¿la probabilidad predicha significa lo que dice?",
+        fontsize=11,
+        loc="left",
+    )
+    ax.legend(fontsize=8, loc="upper left")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    _pie_de_figura(fig, spec, "10 bins de ancho igual en [0, 1]")
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
+
+
+def figure_cost_vs_threshold(
+    curva: pd.DataFrame,
+    t_default: float,
+    t_star: float,
+    spec: datasets.DatasetSpec,
+    path: Path,
+) -> Path:
+    """Coste total (MM CLP) en función del umbral, con marcadores en t=0.5 y en t* (CLAUDE.md §9).
+
+    `curva` es un `threshold.cost_curve(...)`: columnas `threshold` y
+    `coste_total` en CLP. Se grafica en millones para que el eje sea legible.
+    """
+    fig, ax = plt.subplots(figsize=(7.5, 4.8))
+    coste_mm = curva["coste_total"] / 1e6
+    ax.plot(curva["threshold"], coste_mm, color=COLOR_NEGATIVA, linewidth=1.8)
+
+    def _coste_en(t: float) -> float:
+        return float(np.interp(t, curva["threshold"], coste_mm))
+
+    ax.axvline(t_default, color="black", linestyle="--", linewidth=1.2)
+    ax.scatter([t_default], [_coste_en(t_default)], color="black", zorder=5)
+    ax.annotate(
+        f"t=0.5\n{_coste_en(t_default):.1f} MM CLP",
+        (t_default, _coste_en(t_default)),
+        textcoords="offset points",
+        xytext=(8, 10),
+        fontsize=8,
+    )
+
+    ax.axvline(t_star, color=COLOR_POSITIVA, linestyle="--", linewidth=1.2)
+    ax.scatter([t_star], [_coste_en(t_star)], color=COLOR_POSITIVA, zorder=5)
+    ax.annotate(
+        f"t*={t_star:.4f}\n{_coste_en(t_star):.1f} MM CLP",
+        (t_star, _coste_en(t_star)),
+        textcoords="offset points",
+        xytext=(8, -22),
+        fontsize=8,
+        color=COLOR_POSITIVA,
+    )
+
+    ax.set_xlabel("umbral de decisión", fontsize=9)
+    ax.set_ylabel("coste total (millones de CLP)", fontsize=9)
+    ax.set_title("El umbral 0.5 es una decisión, no un valor por defecto", fontsize=11, loc="left")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    _pie_de_figura(fig, spec, "costes de config/costs.yaml: SUPUESTOS, no medidos en campo")
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
+
+
+def figure_shap_beeswarm(
+    shap_result: dict, X: pd.DataFrame, spec: datasets.DatasetSpec, path: Path
+) -> Path:
+    """Beeswarm de valores SHAP de `logistic_plain`, coloreado por el valor ORIGINAL del atributo.
+
+    Los valores SHAP se calcularon sobre el espacio imputado y escalado que ve
+    el clasificador (`explain.shap_values_logistic`); aquí se colorea con el
+    valor crudo de `X` para que el eje de color sea interpretable (°C, mm/s,
+    bar...) en vez de un z-score sin unidades.
+    """
+    import shap
+
+    explicacion = shap.Explanation(
+        values=shap_result["shap_values"],
+        base_values=np.full(len(X), shap_result["valor_base"]),
+        data=X.to_numpy(),
+        feature_names=[_etiqueta(c) for c in shap_result["columnas"]],
+    )
+    shap.plots.beeswarm(explicacion, show=False)
+    fig = plt.gcf()
+    fig.suptitle(
+        f"Contribución SHAP por atributo — logistic_plain "
+        f"(log-odds de failure='{shap_result['positive_label']}')",
+        fontsize=10,
+    )
+    _pie_de_figura(fig, spec, "SHAP en el espacio escalado; color = valor original del atributo")
+    fig.tight_layout(rect=(0, 0.03, 1, 0.93))
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
+
+
+def figure_shap_waterfalls_positives(
+    shap_result: dict, y: pd.Series, spec: datasets.DatasetSpec, path: Path
+) -> Path:
+    """Un mini-waterfall por cada caso `failure="yes"`: qué atributo empujó esa predicción y cuánto.
+
+    Barras horizontales con la contribución SHAP (log-odds) de cada atributo,
+    ordenadas por magnitud, para cada uno de los 10 casos positivos de
+    CLAUDE.md §6.2 — son pocos como para no poder mirarlos uno a uno.
+    """
+    y_str = y.astype(str).reset_index(drop=True)
+    idx_positivos = np.flatnonzero((y_str == "yes").to_numpy())
+    columnas = [_etiqueta(c) for c in shap_result["columnas"]]
+    valores = shap_result["shap_values"]
+
+    n = len(idx_positivos)
+    ncols = 5
+    nrows = int(np.ceil(n / ncols))
+    fig, axes = plt.subplots(nrows, ncols, figsize=(4.0 * ncols, 2.6 * nrows))
+    ejes = np.atleast_1d(axes).ravel()
+    for ax in ejes[n:]:
+        ax.set_visible(False)
+
+    for ax, idx in zip(ejes, idx_positivos, strict=False):
+        contribuciones = valores[idx]
+        orden = np.argsort(np.abs(contribuciones))
+        colores = [COLOR_POSITIVA if v > 0 else COLOR_NEGATIVA for v in contribuciones[orden]]
+        ax.barh(range(len(orden)), contribuciones[orden], color=colores)
+        ax.set_yticks(range(len(orden)))
+        ax.set_yticklabels([columnas[i] for i in orden], fontsize=7)
+        ax.axvline(0, color="black", linewidth=0.8)
+        ax.set_title(f"fila {idx}", fontsize=8)
+        ax.tick_params(axis="x", labelsize=7)
+
+    fig.suptitle(
+        "Contribución SHAP por atributo en cada uno de los 10 casos failure='yes'", fontsize=11
+    )
+    fig.tight_layout(rect=(0, 0.03, 1, 0.95))
+    _pie_de_figura(fig, spec, "naranja empuja hacia 'yes', azul hacia 'no'")
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
+
+
+def figure_tree_root_stability(stability: dict, spec: datasets.DatasetSpec, path: Path) -> Path:
+    """Barras del % de bootstraps en que cada atributo fue el primer corte del árbol (§10.1).
+
+    Línea horizontal en 70 %: el test `tests/test_tree_stability.py` protege
+    que ninguna barra la cruce — si la cruzara, "la vibración decide el
+    fallo" dejaría de ser una conclusión errónea.
+    """
+    porcentajes = stability["porcentaje_raiz_por_atributo"]
+    atributos = list(porcentajes)
+    valores = [porcentajes[a] for a in atributos]
+    etiquetas = [_etiqueta(a) for a in atributos]
+
+    fig, ax = plt.subplots(figsize=(7.5, 5.0))
+    barras = ax.bar(etiquetas, valores, color=COLOR_POSITIVA, alpha=0.8)
+    for barra, v in zip(barras, valores, strict=False):
+        ax.text(
+            barra.get_x() + barra.get_width() / 2,
+            v + 1.5,
+            f"{v:.1f} %",
+            ha="center",
+            va="bottom",
+            fontsize=9,
+        )
+    ax.axhline(70.0, color="black", linewidth=1.2, linestyle="--")
+    ax.text(len(atributos) - 0.5, 72.0, "umbral del test: 70 %", ha="right", fontsize=8)
+    ax.set_xticks(range(len(etiquetas)))
+    ax.set_xticklabels(etiquetas, rotation=20, ha="right", fontsize=9)
+    ax.set_ylim(0, 100)
+    ax.set_ylabel(f"% de {stability['n_boot']} bootstraps en que fue la raíz", fontsize=9)
+    ax.set_title("Ningún atributo domina la raíz del árbol", fontsize=12, loc="left")
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    _pie_de_figura(
+        fig, spec, f"profundidad efectiva media: {stability['profundidad_efectiva_media']:.2f}"
+    )
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
+
+
+def figure_learning_curve(curva: pd.DataFrame, spec: datasets.DatasetSpec, path: Path) -> Path:
+    """PR-AUC frente a tamaño de entrenamiento, con banda de ±1 desviación (CLAUDE.md §10.2).
+
+    ADVERTENCIA: esta curva NO sube con más datos — baja, con bandas de hasta
+    ±0.30. Se dibuja tal cual, sin suavizar: es uno de los gráficos más
+    honestos del repositorio.
+    """
+    fig, ax = plt.subplots(figsize=(7.5, 4.8))
+    x = curva["n_entrenamiento"]
+    media = curva["pr_auc_media"]
+    desv = curva["pr_auc_desv"]
+    ax.plot(x, media, marker="o", color=COLOR_NEGATIVA, linewidth=1.8)
+    ax.fill_between(
+        x, media - desv, media + desv, color=COLOR_NEGATIVA, alpha=0.2, label="±1 desviación"
+    )
+    ax.set_xlabel("nº de observaciones de entrenamiento", fontsize=9)
+    ax.set_ylabel("PR-AUC (StratifiedKFold)", fontsize=9)
+    ax.set_ylim(-0.05, 1.05)
+    ax.set_title(
+        "La curva de aprendizaje NO sube: señal dominada por ruido de muestreo",
+        fontsize=11,
+        loc="left",
+    )
+    ax.legend(fontsize=8)
+    ax.text(
+        0.02,
+        0.02,
+        "No suavizado: con 10 positivos, esto es ruido, no una tendencia.",
+        transform=ax.transAxes,
+        fontsize=8,
+        style="italic",
+    )
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+    _pie_de_figura(fig, spec)
+    fig.savefig(path, dpi=150)
+    plt.close(fig)
+    return path
