@@ -1,0 +1,13 @@
+# Configuración de Streamlit para Streamlit Community Cloud y para
+# `uv run streamlit run app/streamlit_app.py` en local (CLAUDE.md §15).
+
+[server]
+headless = true
+enableStaticServing = true
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "light"
+primaryColor = "#eb6834"
