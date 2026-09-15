@@ -301,30 +301,83 @@ ignorar `C_TP` y está mal.
 Test clave: para un modelo perfectamente calibrado **simulado**,
 `optimal_threshold` debe converger a 0.0556 con tolerancia 0.01.
 
-### 9.2 Verificado: qué variante usar, y por qué
+### 9.1b MEDIDO (Fase 4): §9.2 y §9.3 ya reflejan las 179 filas validadas
 
-`StratifiedKFold(5, shuffle, seed 42)`, costes de §9.1, cifras en millones de CLP:
+Las tablas de coste de §9.2 y §9.3 se recalcularon en la Fase 4 con el pipeline
+real (`calibration.py`, `threshold.py`) sobre el dataset **validado** (179
+filas, la 82 en cuarentena — CLAUDE.md §2.9), con
+`StratifiedKFold(5, shuffle=True, random_state=42)` externo y el umbral
+optimizado **dentro** de cada fold de entrenamiento sobre un
+`StratifiedKFold(3)` interno (regla dura 7; ver docstring de
+`calibration.evaluate_cost_variants`).
+
+De la lista de cuatro cosas que se esperaba conservar, **dos se conservaron
+literalmente y dos NO** — y las dos que no, son hallazgos, no errores:
+
+- ✅ El umbral empírico **bate** al teórico t\*=0.0556 (§9.3): 29.0 MM CLP
+  frente a 49.0 MM CLP, sobre el mismo conjunto de predicciones out-of-fold.
+- ✅ `logistic_balanced` sigue siendo, con diferencia, la peor variante
+  calibrada — pero el número exacto cambia de signo (ver abajo).
+- ⚠️ **`logistic_balanced` NO da un umbral por encima de 0.5 con ahorro
+  marginal positivo: da un umbral de 0.470 (por DEBAJO de 0.5) con ahorro
+  **negativo** (−10.5 %)**. Optimizar el umbral dentro del fold de
+  entrenamiento y aplicarlo a un fold de test que nunca vio produce, para este
+  modelo, un resultado **peor** que quedarse en 0.5 — una demostración más
+  contundente de la regla dura 5 que la original (que ya era "ahorro casi
+  nulo"): con `class_weight="balanced"`, ni siquiera *intentar* optimizar el
+  umbral ayuda, puede empeorar.
+- ⚠️ **La isotónica tiene un Brier ligeramente MEJOR que Platt** en esta
+  medición (0.0341 frente a 0.0370) — lo contrario de lo anticipado. Platt
+  sigue ganando en PR-AUC (0.5838 frente a 0.5582) y, sobre todo, en el
+  criterio que de verdad importa para la decisión operativa — el ahorro
+  económico (64.7 % frente a 24.0 %) — así que la decisión del proyecto
+  (Platt) se mantiene, apoyada en el ahorro, no en el Brier. Con 10 positivos,
+  qué variante "gana" en Brier depende de qué 8 positivos cayeron en qué fold
+  de test — no es una propiedad estable del método.
+
+Ninguna de las dos discrepancias se ha forzado ni escondido: son el resultado
+real de ejecutar el código sobre datos reales. El único número que NO depende
+del dataset es el teórico t\* = (C_FP−C_TN)/((C_FP−C_TN)+(C_FN−C_TP)) =
+**0.0556**, porque sale solo de la matriz de coste — y el test sobre un modelo
+simulado perfectamente calibrado converge ahí exactamente
+(`tests/test_threshold.py`).
+
+### 9.2 Verificado (Fase 4, 179 filas): qué variante usar, y por qué
+
+`StratifiedKFold(5, shuffle, seed 42)` externo; umbral optimizado dentro de
+cada fold de entrenamiento sobre un `StratifiedKFold(3)` interno (regla dura
+7); `CalibratedClassifierCV(cv=3)` para Platt/isotónica. Costes de §9.1,
+cifras en millones de CLP. Medido con `pdm-cli calibrate --dataset lab180`,
+volcado en `reports/calibration_lab180.json`:
 
 | variante | Brier | PR-AUC | t\* empírico | coste t=0.5 | coste t\* | ahorro | conf. en t\* |
 |---|---|---|---|---|---|---|---|
-| logistic **balanced** | 0.0726 | 0.5696 | **0.569** | 39.0 | 38.5 | 0.5 (**1.3 %**) | FN=2 TP=8 FP=13 |
-| logistic plain | 0.0343 | 0.5572 | 0.065 | 67.5 | 34.5 | 33.0 (48.9 %) | FN=1 TP=9 FP=22 |
-| logistic plain + **Platt** | 0.0361 | **0.6402** | 0.114 | 91.5 | **30.0** | 61.5 (**67.2 %**) | FN=1 TP=9 FP=13 |
-| logistic plain + isotónica | 0.0363 | 0.4903 | 0.093 | 59.0 | 38.0 | 21.0 (35.6 %) | FN=2 TP=8 FP=12 |
+| logistic **balanced** | 0.0643 | 0.5918 | 0.470 | 38.0 | 42.0 | −4.0 (**−10.5 %**) | FN=2 TP=8 FP=20 |
+| logistic plain | 0.0329 | 0.6232 | 0.150 | 67.0 | 36.0 | 31.0 (46.3 %) | FN=2 TP=8 FP=8 |
+| logistic plain + **Platt** | 0.0370 | **0.5838** | 0.141 | 100.5 | 35.5 | **65.0 (64.7 %)** | FN=2 TP=8 FP=7 |
+| logistic plain + isotónica | **0.0341** | 0.5582 | 0.091 | 50.0 | 38.0 | 12.0 (24.0 %) | FN=2 TP=8 FP=12 |
 
 **Decisión del proyecto: `logistic_plain` + calibración Platt (`sigmoid`) +
-umbral optimizado.** Platt gana a la isotónica, como se esperaba: con 10
-positivos la isotónica sobreajusta y su PR-AUC cae a 0.49.
+umbral optimizado.** No porque tenga el mejor Brier de las dos calibradas (no
+lo tiene, ver §9.1b) sino porque tiene el mejor PR-AUC de las dos y, sobre
+todo, el mejor ahorro con diferencia: 65.0 MM CLP frente a los 12.0 MM de la
+isotónica, sobre el mismo dataset y el mismo protocolo. `logistic_balanced`
+—incluida como contraejemplo de la regla dura 5— es la única variante cuyo
+coste al umbral "óptimo" empeora respecto de quedarse en 0.5.
 
 ### 9.3 Verificado y contraintuitivo: la fórmula NO gana al barrido
 
-Aplicando el umbral **teórico** 0.0556 al mejor modelo calibrado, el coste es
-**51.0 MM CLP**. El umbral **empírico** 0.114 da **30.0 MM CLP**. El barrido
-empírico gana por 21 MM.
+Sobre las mismas predicciones out-of-fold de `logistic_plain` + Platt (un único
+`StratifiedKFold(5)`, sin optimización anidada por fold — la comparación
+directa que motiva esta sección), aplicando el umbral **teórico** 0.0556 el
+coste es **49.0 MM CLP**. El umbral **empírico** (barrido simple, 0.126) da
+**29.0 MM CLP**. El barrido empírico gana por 20 MM — la misma dirección y
+una magnitud casi idéntica a la medición original sobre 180 filas (51.0 MM
+frente a 30.0 MM).
 
 Razón: `t* = 0.0556` es óptimo solo si el modelo está **perfectamente**
-calibrado. Con 10 positivos la calibración de Platt es aproximada (Brier 0.036),
-y al umbral teórico el modelo dispara 55 falsas alarmas en lugar de 13.
+calibrado. Con 10 positivos la calibración de Platt es aproximada, y al
+umbral teórico el modelo dispara muchas más falsas alarmas de las necesarias.
 
 **Cómo presentarlo en el README, sin contradicción:** la fórmula es el **ancla
 teórica** que demuestra por qué 0.5 es absurdo aquí — el umbral correcto está un

@@ -314,14 +314,155 @@ a la vez (CLAUDE.md §2.5), porque sería contar el desbalance dos veces.
   (2019). *Machine learning algorithm validation with a limited sample size.*
   PLOS ONE 14(11): e0224365.
 
+## El umbral 0.5 es una decisión, no un valor por defecto
+
+Un modelo entrena para ordenar probabilidades; convertir esa probabilidad en
+"mandar a mantenimiento sí/no" es una decisión económica aparte, y 0.5 no
+tiene ningún significado económico en este problema — es un accidente de que
+la pérdida logística es simétrica. `config/costs.yaml` declara los supuestos
+(CLP, **no medidos en campo**, configurables):
+
+| resultado | coste | interpretación |
+|---|---|---|
+| Falso negativo (`C_FN`) | 10 000 000 | parada no planificada, daño al equipo |
+| Falso positivo (`C_FP`) | 500 000 | inspección innecesaria de un equipo sano |
+| Verdadero positivo (`C_TP`) | 1 500 000 | mantenimiento planificado: también cuesta |
+| Verdadero negativo (`C_TN`) | 0 | referencia |
+
+Como `C_TP` no es cero, el umbral óptimo para un modelo **perfectamente
+calibrado** no es la fórmula simplificada `C_FP/(C_FP+C_FN)` (que da 0.0476 y
+está mal) sino la que sí tiene en cuenta que un verdadero positivo también
+cuesta:
+
+```
+t* = (C_FP − C_TN) / ((C_FP − C_TN) + (C_FN − C_TP))
+   = 500 000 / (500 000 + 10 000 000 − 1 500 000)
+   = 500 000 / 9 000 000
+   = 0.0556
+```
+
+`tests/test_threshold.py` simula un modelo perfectamente calibrado (`y_prob`
+como la probabilidad real, `y_true ~ Bernoulli(y_prob)`) y verifica que
+`threshold.optimal_threshold` converge a 0.0556 con tolerancia 0.01.
+
+Con `logistic_plain` (CLAUDE.md §9.2: el único modelo del zoo sin
+`class_weight`, así que sus probabilidades no están distorsionadas por
+reescalar la pérdida) calibrado con Platt (`sigmoid`) y el umbral optimizado
+**dentro de cada fold de entrenamiento** (nunca sobre el fold de test —
+CLAUDE.md §2.7), sobre las 179 filas validadas:
+
+| variante | Brier | PR-AUC | umbral empírico | coste t=0.5 | coste t* | ahorro |
+|---|---|---|---|---|---|---|
+| logistic balanced | 0.0643 | 0.5918 | 0.470 | 38.0 MM | 42.0 MM | **−4.0 MM (−10.5 %)** |
+| logistic plain | 0.0329 | 0.6232 | 0.150 | 67.0 MM | 36.0 MM | 31.0 MM (46.3 %) |
+| **logistic plain + Platt** | 0.0370 | **0.5838** | 0.141 | 100.5 MM | **35.5 MM** | **65.0 MM (64.7 %)** |
+| logistic plain + isotónica | **0.0341** | 0.5582 | 0.091 | 50.0 MM | 38.0 MM | 12.0 MM (24.0 %) |
+
+**`logistic_plain` + Platt es la decisión del proyecto** — no porque tenga el
+mejor Brier de las dos variantes calibradas (no lo tiene: la isotónica, por
+azar de qué 8 positivos cayeron en qué fold, sale 0.0341 frente a 0.0370 esta
+vez) sino porque tiene mejor PR-AUC y, sobre todo, más del doble de ahorro que
+la isotónica sobre el mismo protocolo. `logistic_balanced` está en la tabla
+como contraejemplo de la regla dura de CLAUDE.md §2.5 — **nunca combinar
+`class_weight="balanced"` con el umbral por coste**: es la única fila cuyo
+coste al umbral "óptimo" es *peor* que quedarse en 0.5, porque el desbalance
+ya se contó una vez al entrenar y el umbral intenta corregirlo otra vez, sobre
+un fold de test que nunca vio.
+
+![Coste total frente al umbral de decisión](reports/figures/lab180/cost_vs_threshold.png)
+*Curva de coste de `logistic_plain` + Platt: el mínimo está muy por debajo de
+0.5, cerca de t\*. La línea negra marca el coste al umbral por defecto; la
+naranja, al umbral empírico.*
+
+![Curva de fiabilidad de las tres variantes de logistic_plain](reports/figures/lab180/calibration_curve.png)
+*Con 10 positivos repartidos en 5 folds de test (~2 cada uno), la curva de
+fiabilidad es ruidosa por construcción — cada bin tiene pocas observaciones.
+Ninguna de las tres variantes sigue la diagonal con precisión; es la
+calibración que hay, no una que se pueda mejorar suavizando el gráfico.*
+
+## La fórmula no gana al barrido, y eso es un hallazgo
+
+Sobre las mismas predicciones out-of-fold de `logistic_plain` + Platt,
+aplicar el umbral **teórico** (0.0556) cuesta **49.0 MM CLP**. Aplicar el
+umbral **empírico** que minimiza el coste por barrido (0.126) cuesta
+**29.0 MM CLP**. El barrido gana por 20 MM CLP — casi un 40 % menos.
+
+Esto no es una contradicción entre §9.1 y esta sección: son dos cosas
+distintas que apuntan en la misma dirección. La fórmula teórica es el **ancla**
+que demuestra que 0.5 es absurdo aquí — el umbral correcto está un orden de
+magnitud más abajo, y eso ya es la conclusión importante. Pero `t*` es óptimo
+solo si el modelo está **perfectamente** calibrado, y con 10 positivos ningún
+modelo lo está: la calibración de Platt es una aproximación razonable, no
+exacta. El barrido empírico dentro de cada fold (regla dura de CLAUDE.md §2.7)
+es el **procedimiento operativo** — el que de verdad se usaría en producción.
+La distancia entre los dos (20 MM CLP, en esta medición) es, ella misma, una
+medida de cuán lejos está el modelo de la calibración perfecta que asume la
+fórmula — no un error de ninguno de los dos cálculos.
+
+## Qué NO podemos afirmar
+
+Tres límites medidos, no supuestos, todos con código en
+`src/predictive_maintenance/power.py` y `explain.py`:
+
+- **El intervalo de confianza del recall es casi tan ancho como el propio
+  rango [0, 1].** Con 8 aciertos sobre 10 positivos, el IC de Wilson es
+  **[0.490, 0.943]** — 45 puntos porcentuales de anchura. "Recall 0.80" y
+  "recall 0.50" son, con esta muestra, estadísticamente indistinguibles.
+- **La curva de aprendizaje no sube con más datos: es ruido.**
+
+  ![Curva de aprendizaje de PR-AUC](reports/figures/lab180/learning_curve.png)
+  *No suavizada a propósito: con 10 positivos, añadir observaciones de
+  entrenamiento no produce una tendencia creciente — produce esto.*
+
+- **La raíz del árbol tampoco es estable.** Sobre 300 bootstraps
+  estratificados, `vibration_mm_s` —el atributo con más señal univariante,
+  CLAUDE.md §6.4— es el primer corte solo el **56.0 %** de las veces, no
+  siempre (`tests/test_tree_stability.py` protege explícitamente que esto se
+  mantenga por debajo del 70 %).
+
+  ![Estabilidad de la raíz del árbol](reports/figures/lab180/tree_root_stability.png)
+
+**La recomendación que se sigue de esto**: para estimar un recall de 0.80 con
+un margen de ±10 puntos porcentuales haría falta observar **62 fallos** —
+aproximadamente **1116 ciclos de máquina** a la prevalencia actual (5.5556 %,
+CLAUDE.md §6.2). Hoy hay 10 fallos y 180 ciclos. Para ±5 pp harían falta 246
+fallos — unos 4428 ciclos. `lab180` no tiene esos datos, y este repositorio no
+los va a inventar: ver [`MODEL_CARD.md`](MODEL_CARD.md), sección "Por qué este
+modelo no debe desplegarse".
+
+*(Sobre las 179 filas que realmente entrenan el modelo, la prevalencia es
+5.5866 % en vez de 5.5556 % — misma lógica que CLAUDE.md §8.1 y §9.1b: los 62
+fallos corresponden a 1110 ciclos, no 1116. Una diferencia de una fila, no una
+discrepancia que cuadrar.)*
+
+## Explicabilidad
+
+`logistic_plain` (el modelo base de la calibración de Platt) se explica con
+`shap.LinearExplainer`, sobre el espacio ya imputado y escalado que ve el
+clasificador — la calibración es una transformación monótona 1D que no cambia
+qué atributo empuja la predicción, solo reescala la probabilidad final.
+
+![Beeswarm de valores SHAP](reports/figures/lab180/shap_beeswarm.png)
+*Vibración alta, horas desde mantenimiento altas y presión BAJA empujan hacia
+`failure="yes"` — coherente con CLAUDE.md §6.4 y §11 (una presión baja es
+compatible con fuga o pérdida de estanqueidad, no con más estrés mecánico).*
+
+![Waterfalls de los 10 casos positivos](reports/figures/lab180/shap_waterfalls_positivos.png)
+*Con solo 10 fallos, tiene sentido mirarlos uno a uno: no todos los positivos
+llegan a "yes" por el mismo atributo — la fila 71, por ejemplo, la domina la
+presión; la fila 40, la vibración.*
+
 ## En construcción
 
-Esto cubre las Fases 1, 2 y 3 (andamiaje + EDA + contrato de datos + auditor de
-plausibilidad + modelado con validación honesta). Todavía faltan: calibración
-de probabilidades, umbral de decisión por coste, límites estadísticos
-explícitos (estabilidad del árbol, presupuesto de potencia) y el segundo
-dataset (`ai4i2020`). Nada de lo que sigue está escrito todavía a propósito —
-no hay número que reportar sin haberlo medido.
+Esto cubre las Fases 1 a 4 (andamiaje + EDA + contrato de datos + auditor de
+plausibilidad + modelado con validación honesta + calibración + umbral por
+coste + explicabilidad + límites estadísticos). Ver también
+[`MODEL_CARD.md`](MODEL_CARD.md) y el anexo académico en
+[`notebooks/00_lab_original.ipynb`](notebooks/00_lab_original.ipynb). Todavía
+falta el segundo dataset (`ai4i2020`, físicamente acoplado y con ~339
+positivos — la contraparte de `lab180` como contraejemplo) y el empaquetado
+final: Docker, CI, dashboard. Nada de lo que sigue está escrito todavía a
+propósito — no hay número que reportar sin haberlo medido.
 
 ## Desarrollo
 
@@ -332,6 +473,9 @@ make test
 make eda
 make validate
 make train
+make calibrate
+make explain
+make limits
 ```
 
 Ver `CLAUDE.md` para las reglas del proyecto.
